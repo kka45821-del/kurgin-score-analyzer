@@ -2,7 +2,6 @@ from io import BytesIO
 import pandas as pd
 
 from core_formula.main_engine import get_final_diamond_analysis
-<<<<<<< HEAD
 from data_models.stone import StoneInput
 from excel_processing.column_mapping import apply_column_mapping
 from platform_config.app_config import UNSUPPORTED_SHAPE_MESSAGE
