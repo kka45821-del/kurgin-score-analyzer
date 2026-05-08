@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# Streamlit / local runtime
+.streamlit/secrets.toml
+*.log
+
+# Archives and installers
+*.zip
+*.exe
+*.msi
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Data / exports
+exports/
+*.xlsx
+*.xls
+*.csv
+*.pdf

@@ -28,10 +28,7 @@ FULL_COLUMNS = DETAILED_COLUMNS + [
     "Engine Version",
     "Breakdown",
     "Calculation Status",
-<<<<<<< HEAD
     "Validation Errors",
-=======
->>>>>>> 26df66d83359b5b09b286a9b53e84532e42943eb
 ]
 
 PROFESSIONAL_COLUMNS = None

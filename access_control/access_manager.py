@@ -21,54 +21,12 @@ REPORT_LEVELS = [
 ]
 
 DEFAULT_ACCESS_MATRIX = {
-<<<<<<< HEAD
     "Guest": ["Score Only"],
     "Registered": ["Score Only", "Short Report"],
     "Jeweler": ["Score Only", "Short Report", "Detailed Report"],
     "Paid": ["Score Only", "Short Report", "Detailed Report", "Full Report"],
     "Professional": ["Score Only", "Short Report", "Detailed Report", "Full Report", "Professional Report"],
     "Admin": REPORT_LEVELS,
-=======
-
-    # Только базовый score
-    "Guest": [
-        "Score Only"
-    ],
-
-    # Краткий breakdown
-    "Registered": [
-        "Score Only",
-        "Short Report"
-    ],
-
-    # Полноценный B2B режим
-    "Jeweler": [
-        "Score Only",
-        "Short Report",
-        "Detailed Report",
-        "Full Report"
-    ],
-
-    # Платный пользователь
-    "Paid": [
-        "Score Only",
-        "Short Report",
-        "Detailed Report",
-        "Full Report"
-    ],
-
-    # Инженерный доступ
-    "Professional": [
-        "Score Only",
-        "Short Report",
-        "Detailed Report",
-        "Full Report",
-        "Professional Report"
-    ],
-
-    # Полный доступ
-    "Admin": REPORT_LEVELS
->>>>>>> 26df66d83359b5b09b286a9b53e84532e42943eb
 }
 
 

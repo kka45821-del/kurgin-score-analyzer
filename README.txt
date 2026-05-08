@@ -1,13 +1,8 @@
-<<<<<<< HEAD
 Kurgin Score Analyzer v1.4-architecture
-=======
-Kurgin Score Analyzer v1.2-dev
->>>>>>> 26df66d83359b5b09b286a9b53e84532e42943eb
 
 Run:
 python -m streamlit run app.py
 
-<<<<<<< HEAD
 v1.4 changes:
 - App architecture foundation improved
 - Added formula_modules/ for future formula development
@@ -19,9 +14,6 @@ v1.4 changes:
 - Formula core remains unchanged by design
 
 Existing features:
-=======
-Features:
->>>>>>> 26df66d83359b5b09b286a9b53e84532e42943eb
 - Excel upload
 - Column Mapping
 - Kurgin Score engine for ROUND
