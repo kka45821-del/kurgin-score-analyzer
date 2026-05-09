@@ -1,155 +1,167 @@
-import streamlit as st
+import os
+from datetime import datetime
+
 import pandas as pd
+import streamlit as st
 
-from excel_tools import (
-    process_dataframe,
-    make_analytics,
-    create_excel_output,
-    process_single_stone,
-)
-from access_control.access_manager import (
-    ROLES,
-    REPORT_LEVELS,
-    load_access_settings,
-    save_access_settings,
-    get_allowed_levels,
-)
+from access_control.access_manager import ROLES, REPORT_LEVELS, load_access_settings, get_allowed_levels
+from excel_tools import create_excel_output, make_analytics, process_dataframe, process_single_stone
+from formula_client.engine_client import get_formula_mode
 from report_templates.report_columns import filter_report_dataframe
-
 
 st.set_page_config(
     page_title="Kurgin Score Analyzer",
-    layout="wide"
+    page_icon="◇",
+    layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 TEXT = {
     "RU": {
-        "title": "Kurgin Score Analyzer",
-        "subtitle": "Инженерный анализ световой архитектуры бриллианта",
-        "upload_excel": "Загрузите Excel файл",
+        "app_title": "Kurgin Score",
+        "app_subtitle": "Анализ световой архитектуры бриллианта",
+        "choose_mode": "Выберите режим",
+        "single_mode": "Анализ бриллианта",
+        "single_desc": "Один камень: фото, PDF сертификата или ручной ввод параметров.",
+        "pro_mode": "Профессиональная аналитика",
+        "pro_desc": "Массовая обработка Excel, аналитика коллекции и экспорт отчётов.",
+        "score_only": "Получить коэффициент",
+        "short": "Краткий отчёт",
+        "detailed": "Детальный анализ",
+        "full": "Полный отчёт",
+        "professional": "Профессиональный обзор",
+        "pdf": "PDF / сертификат",
+        "locked_registered": "Этот уровень доступен после регистрации.",
+        "locked_pro": "Этот уровень доступен для профессионального доступа.",
+        "upload_cert": "Загрузить сертификат",
+        "take_photo": "Сфотографировать",
+        "manual_input": "Ручной ввод",
+        "upload_excel": "Загрузить Excel файл",
+        "excel_hint": "Поддерживаются .xlsx и .xls. Для стабильной работы используйте таблицу с параметрами сертификата.",
+        "result_example": "Результат",
+        "upload_to_continue": "Загрузите данные, чтобы получить отчёт.",
+        "report_level": "Уровень результата",
+        "role": "Доступ",
+        "language": "Язык",
+        "home": "Главная",
+        "diamond": "Камень",
+        "pro": "Pro",
+        "reports": "Отчёты",
+        "profile": "Профиль",
+        "cloud_ready": "Formula API: подготовлено",
+        "formula_mode": "Режим формулы",
         "analytics": "Аналитика",
         "top_stones": "Лучшие камни",
         "risks": "Риски",
-        "stone_debug": "Разбор камня",
         "raw_data": "Данные",
         "download": "Скачать",
-        "certificate": "Сертификат",
-        "access_admin": "Доступ",
-        "summary": "Краткая аналитика",
-        "all_stones": "Всего камней",
-        "success": "Успешно рассчитано",
-        "errors": "Ошибок",
-        "avg_score": "Средний Score",
-        "verdicts": "Распределение по вердиктам",
-        "ranges": "Распределение по диапазонам Score",
-        "top10": "Топ 10 камней",
-        "worst10": "Худшие 10 камней",
-        "risk_stones": "Камни с рисками",
-        "critical_risk": "Критические риски",
-        "debug_select": "Выберите Report #",
-        "verdict": "Вердикт",
-        "tags": "Теги",
-        "risks_title": "Риски",
-        "diagnostics": "Диагностика",
-        "breakdown": "Разбор",
-        "full_data": "Полные данные камня",
-        "raw_table": "Исходные и обработанные данные",
-        "download_result": "Скачать результат",
-        "download_excel": "Скачать обработанный Excel",
-        "role": "Роль пользователя",
-        "report_level": "Уровень отчёта",
-        "score_only_note": "Уровень отчёта управляет тем, какие данные видит пользователь.",
-        "certificate_hint": "Сфотографируйте сертификат или загрузите фото. OCR будет добавлен следующим этапом.",
+        "total": "Всего",
+        "success": "Рассчитано",
+        "errors": "Ошибки",
+        "avg": "Средний Score",
+        "manual_calculate": "Рассчитать бриллиант",
+        "select_action": "Выберите уровень результата",
+        "not_ready_pdf": "PDF/сертификат будет подключён отдельным этапом. Сейчас доступен табличный отчёт.",
+        "ocr_later": "OCR для фото/PDF будет подключён после выноса формулы в закрытый API.",
     },
     "EN": {
-        "title": "Kurgin Score Analyzer",
-        "subtitle": "Engineering analysis of diamond light architecture",
+        "app_title": "Kurgin Score",
+        "app_subtitle": "Diamond light architecture analysis",
+        "choose_mode": "Choose mode",
+        "single_mode": "Diamond Analysis",
+        "single_desc": "One stone: photo, PDF certificate or manual parameter input.",
+        "pro_mode": "Professional Analytics",
+        "pro_desc": "Batch Excel processing, collection analytics and report export.",
+        "score_only": "Get Score",
+        "short": "Short Report",
+        "detailed": "Detailed Analysis",
+        "full": "Full Report",
+        "professional": "Professional Review",
+        "pdf": "PDF / Certificate",
+        "locked_registered": "This level is available after registration.",
+        "locked_pro": "This level is available for professional access.",
+        "upload_cert": "Upload certificate",
+        "take_photo": "Take photo",
+        "manual_input": "Manual input",
         "upload_excel": "Upload Excel file",
+        "excel_hint": "Supports .xlsx and .xls. Use a certificate-parameter table for best stability.",
+        "result_example": "Result",
+        "upload_to_continue": "Upload data to get a report.",
+        "report_level": "Result level",
+        "role": "Access",
+        "language": "Language",
+        "home": "Home",
+        "diamond": "Stone",
+        "pro": "Pro",
+        "reports": "Reports",
+        "profile": "Profile",
+        "cloud_ready": "Formula API: ready",
+        "formula_mode": "Formula mode",
         "analytics": "Analytics",
         "top_stones": "Top Stones",
         "risks": "Risks",
-        "stone_debug": "Stone Debug",
-        "raw_data": "Raw Data",
+        "raw_data": "Data",
         "download": "Download",
-        "certificate": "Certificate",
-        "access_admin": "Access",
-        "summary": "Summary",
-        "all_stones": "Total Stones",
+        "total": "Total",
         "success": "Calculated",
         "errors": "Errors",
-        "avg_score": "Average Score",
-        "verdicts": "Verdict Distribution",
-        "ranges": "Score Distribution",
-        "top10": "Top 10 Stones",
-        "worst10": "Worst 10 Stones",
-        "risk_stones": "Risk Stones",
-        "critical_risk": "Critical Risks",
-        "debug_select": "Select Report #",
-        "verdict": "Verdict",
-        "tags": "Tags",
-        "risks_title": "Risks",
-        "diagnostics": "Diagnostics",
-        "breakdown": "Breakdown",
-        "full_data": "Full Stone Data",
-        "raw_table": "Raw and Processed Data",
-        "download_result": "Download Result",
-        "download_excel": "Download Processed Excel",
-        "role": "User Role",
-        "report_level": "Report Level",
-        "score_only_note": "Report level controls what data the user can see.",
-        "certificate_hint": "Take a certificate photo or upload an image. OCR will be added in the next stage.",
+        "avg": "Average Score",
+        "manual_calculate": "Calculate diamond",
+        "select_action": "Choose result level",
+        "not_ready_pdf": "PDF/certificate export will be added separately. Table reports are available now.",
+        "ocr_later": "OCR for photo/PDF will be connected after secure formula API extraction.",
     },
 }
 
-CUSTOM_CSS = """
+LEVEL_TO_REPORT = {
+    "score": "Score Only",
+    "short": "Short Report",
+    "detailed": "Detailed Report",
+    "full": "Full Report",
+    "professional": "Professional Report",
+}
+
+CSS = """
 <style>
-    .main .block-container {
-        padding-top: 2.2rem;
-        padding-bottom: 4rem;
-        max-width: 1320px;
-    }
-    h1 {
-        letter-spacing: -0.04em;
-        font-size: 3.1rem !important;
-        margin-bottom: 0.2rem !important;
-    }
-    .premium-subtitle {
-        font-size: 1.05rem;
-        color: #cbd5e1;
-        margin-bottom: 1.5rem;
-    }
-    .hero-card {
-        padding: 1.35rem 1.5rem;
-        border-radius: 22px;
-        background: linear-gradient(135deg, #0b1220 0%, #1f2937 55%, #111827 100%);
-        color: white;
-        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
-        margin-bottom: 1.2rem;
-    }
-    .hero-card small { color: #cbd5e1; }
-    .metric-card {
-        padding: 1rem 1.15rem;
-        border-radius: 18px;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.055);
-    }
-    .soft-card {
-        padding: 1.2rem;
-        border-radius: 20px;
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
-        margin-bottom: 1rem;
-    }
-    div[data-testid="stMetricValue"] {
-        font-size: 2rem;
-        letter-spacing: -0.04em;
-    }
-    div[data-testid="stTabs"] button { font-weight: 650; }
-    [data-testid="stSidebar"] { background: #f8fafc; }
+:root { --navy:#0b1220; --blue:#13233d; --gold:#d6b46d; --muted:#64748b; --green:#16a34a; }
+.main .block-container { max-width: 980px; padding-top: 1rem; padding-bottom: 6rem; }
+[data-testid="stSidebar"] { background:#f8fafc; }
+.kg-hero { border-radius: 28px; padding: 26px 22px; margin: 8px 0 18px; color:white; background: radial-gradient(circle at top left, #213b67 0%, #0b1220 50%, #070b12 100%); box-shadow:0 18px 45px rgba(15,23,42,.18); }
+.kg-brand { font-family: Georgia, 'Times New Roman', serif; letter-spacing:.16em; font-size: clamp(34px, 9vw, 58px); line-height:1; margin-bottom:10px; }
+.kg-sub { color:#cbd5e1; letter-spacing:.06em; text-transform:uppercase; font-size: clamp(12px, 3vw, 15px); }
+.kg-badge { display:inline-block; margin-top:16px; padding:8px 12px; border:1px solid rgba(214,180,109,.45); border-radius:999px; color:#f8e8bd; font-size:13px; }
+.kg-card { border:1px solid #e5e7eb; border-radius:22px; padding:18px; background:white; box-shadow:0 10px 30px rgba(15,23,42,.06); margin-bottom:14px; }
+.kg-card.dark { background:linear-gradient(135deg,#111827,#172033); color:white; border-color:#334155; }
+.kg-card.green { background:linear-gradient(135deg,#082f22,#123b2e); color:white; border-color:#22543d; }
+.kg-card h3 { margin:0 0 8px 0; font-size:22px; }
+.kg-muted { color:#64748b; font-size:14px; }
+.kg-card.dark .kg-muted, .kg-card.green .kg-muted { color:#cbd5e1; }
+.kg-score { font-family: Georgia, 'Times New Roman', serif; font-size:64px; color:var(--gold); line-height:1; }
+.kg-verdict { display:inline-block; padding:8px 12px; border-radius:999px; background:#ecfdf5; color:#166534; font-weight:700; margin-top:8px; }
+.kg-lock { padding:15px; background:#fff7ed; border:1px solid #fed7aa; border-radius:18px; color:#9a3412; margin-top:12px; }
+.kg-bottom-nav { position: fixed; left: 50%; transform: translateX(-50%); bottom: 12px; z-index: 999; width: min(560px, calc(100% - 24px)); display:flex; justify-content:space-around; gap:8px; padding:10px; border-radius:24px; background:rgba(11,18,32,.92); backdrop-filter: blur(12px); box-shadow:0 12px 40px rgba(15,23,42,.28); }
+.kg-bottom-nav span { color:#e5e7eb; font-size:12px; text-align:center; }
+.stButton > button { border-radius:14px; min-height:46px; font-weight:700; border:1px solid #cbd5e1; }
+.stDownloadButton > button { border-radius:14px; min-height:46px; font-weight:700; }
+@media (max-width: 720px) { .main .block-container { padding-left: 14px; padding-right: 14px; } .kg-card { padding:15px; } div[data-testid="column"] { width:100% !important; flex: 1 1 100% !important; } .kg-score { font-size:56px; } }
 </style>
 """
+
+st.markdown(CSS, unsafe_allow_html=True)
+
+
+def init_state():
+    st.session_state.setdefault("mode", "home")
+    st.session_state.setdefault("single_result", None)
+    st.session_state.setdefault("batch_df", None)
+    st.session_state.setdefault("batch_analytics", None)
+    st.session_state.setdefault("mapping_df", None)
+    st.session_state.setdefault("active_level", "score")
+
+
+def allowed(role, report_level):
+    settings = load_access_settings()
+    return report_level in get_allowed_levels(role, settings)
 
 
 def score_label(score):
@@ -161,200 +173,232 @@ def score_label(score):
         return str(score)
 
 
-def show_hero(t, role, report_level):
+def hero(t):
+    mode = get_formula_mode()
     st.markdown(
         f"""
-        <div class="hero-card">
-            <h1>{t['title']}</h1>
-            <div class="premium-subtitle">{t['subtitle']}</div>
-            <small>{t['role']}: <b>{role}</b> · {t['report_level']}: <b>{report_level}</b></small>
+        <div class="kg-hero">
+            <div class="kg-brand">KURGIN SCORE</div>
+            <div class="kg-sub">{t['app_subtitle']}</div>
+            <div class="kg-badge">{t['cloud_ready']} · {t['formula_mode']}: {mode}</div>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
-def show_metrics(t, analytics):
-    col1, col2, col3, col4 = st.columns(4)
-    avg_score = analytics["avg_score"]
-    metrics = [
-        (t["all_stones"], analytics["total"]),
-        (t["success"], analytics["successful"]),
-        (t["errors"], analytics["errors"]),
-        (t["avg_score"], round(avg_score, 2) if pd.notna(avg_score) else "—"),
+def bottom_nav(t):
+    st.markdown(
+        f"""
+        <div class="kg-bottom-nav">
+            <span>⌂<br>{t['home']}</span>
+            <span>◇<br>{t['diamond']}</span>
+            <span>▦<br>{t['pro']}</span>
+            <span>▤<br>{t['reports']}</span>
+            <span>○<br>{t['profile']}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def mode_selector(t):
+    st.markdown(f"### {t['choose_mode']}")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(f"""<div class="kg-card dark"><h3>◇ {t['single_mode']}</h3><div class="kg-muted">{t['single_desc']}</div></div>""", unsafe_allow_html=True)
+        if st.button(t["single_mode"], use_container_width=True):
+            st.session_state.mode = "single"
+            st.rerun()
+    with c2:
+        st.markdown(f"""<div class="kg-card green"><h3>▦ {t['pro_mode']}</h3><div class="kg-muted">{t['pro_desc']}</div></div>""", unsafe_allow_html=True)
+        if st.button(t["pro_mode"], use_container_width=True):
+            st.session_state.mode = "pro"
+            st.rerun()
+
+
+def action_buttons(t, prefix="single"):
+    st.markdown(f"#### {t['select_action']}")
+    actions = [
+        ("score", t["score_only"]),
+        ("short", t["short"]),
+        ("detailed", t["detailed"]),
+        ("full", t["full"]),
+        ("professional", t["professional"]),
+        ("pdf", t["pdf"]),
     ]
-    for col, (label, value) in zip([col1, col2, col3, col4], metrics):
-        with col:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            st.metric(label, value)
-            st.markdown('</div>', unsafe_allow_html=True)
+    cols = st.columns(2)
+    for i, (key, label) in enumerate(actions):
+        with cols[i % 2]:
+            if st.button(label, key=f"{prefix}_{key}", use_container_width=True):
+                st.session_state.active_level = key
 
 
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+def gated_level_message(t, role, level):
+    if level == "pdf":
+        st.info(t["not_ready_pdf"])
+        return False
+    report_level = LEVEL_TO_REPORT[level]
+    if not allowed(role, report_level):
+        msg = t["locked_registered"] if report_level in ["Short Report", "Detailed Report"] else t["locked_pro"]
+        st.markdown(f"<div class='kg-lock'>🔒 {msg}</div>", unsafe_allow_html=True)
+        return False
+    return True
 
-language = st.sidebar.selectbox("Language / Язык", ["RU", "EN"])
-t = TEXT[language]
 
-access_settings = load_access_settings()
-role = st.sidebar.selectbox(t["role"], ROLES, index=0)
-allowed_levels = get_allowed_levels(role, access_settings)
-report_level = st.sidebar.selectbox(t["report_level"], allowed_levels)
-st.sidebar.caption(t["score_only_note"])
+def render_single_result(t, role):
+    stone = st.session_state.single_result
+    if stone is None:
+        st.info(t["upload_to_continue"])
+        return
+    active = st.session_state.active_level
+    if not gated_level_message(t, role, active):
+        return
+    report_level = LEVEL_TO_REPORT[active]
+    st.markdown("<div class='kg-card'>", unsafe_allow_html=True)
+    st.markdown(f"<div class='kg-score'>{score_label(stone['Kurgin Score'])}</div>", unsafe_allow_html=True)
+    verdict = stone.get("Verdict Local", stone.get("Verdict", "—"))
+    st.markdown(f"<div class='kg-verdict'>{verdict}</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.dataframe(filter_report_dataframe(pd.DataFrame([stone]), report_level), use_container_width=True, hide_index=True)
+    if report_level in ["Full Report", "Professional Report"] and "Breakdown" in stone:
+        with st.expander("Breakdown / Разбор"):
+            st.text(stone["Breakdown"])
 
-show_hero(t, role, report_level)
 
-uploaded_file = st.file_uploader(t["upload_excel"], type=["xlsx"])
+def single_mode(t, language, role):
+    if st.button("← " + t["home"]):
+        st.session_state.mode = "home"
+        st.rerun()
+    st.markdown(f"## {t['single_mode']}")
+    st.caption(t["single_desc"])
 
-df = None
-analytics = None
-mapping_df = None
+    tab1, tab2, tab3 = st.tabs([t["upload_cert"], t["take_photo"], t["manual_input"]])
+    with tab1:
+        cert = st.file_uploader(t["upload_cert"], type=["pdf", "jpg", "jpeg", "png"], key="cert_upload")
+        st.info(t["ocr_later"])
+        if cert is not None and not cert.name.lower().endswith(".pdf"):
+            st.image(cert, caption="Certificate preview", use_container_width=True)
+    with tab2:
+        cam = st.camera_input(t["take_photo"], key="cert_camera")
+        if cam is not None:
+            st.image(cam, caption="Certificate photo", use_container_width=True)
+            st.info(t["ocr_later"])
+    with tab3:
+        with st.form("manual_form"):
+            report = st.text_input("Report #", value="Manual")
+            shape = st.selectbox("Shape", ["ROUND", "OVAL", "PEAR", "CUSHION", "EMERALD", "RADIANT", "PRINCESS"])
+            c1, c2 = st.columns(2)
+            crown_angle = c1.number_input("Crown Angle", value=34.5)
+            pavilion_angle = c2.number_input("Pavilion Angle", value=40.75)
+            c3, c4 = st.columns(2)
+            table_percent = c3.number_input("Table %", value=56.0)
+            depth_percent = c4.number_input("Depth %", value=61.5)
+            c5, c6, c7 = st.columns(3)
+            crown_percent = c5.number_input("Crown %", value=15.0)
+            pavilion_percent = c6.number_input("Pavilion %", value=43.0)
+            girdle_percent = c7.number_input("Girdle %", value=3.5)
+            submitted = st.form_submit_button(t["manual_calculate"], use_container_width=True)
+        if submitted:
+            params = {
+                "Report #": report or "Manual",
+                "Shape": shape,
+                "CrownAngle": crown_angle,
+                "PavilionAngle": pavilion_angle,
+                "TablePercent": table_percent,
+                "DepthPercent": depth_percent,
+                "CrownPercent": crown_percent,
+                "PavilionPercent": pavilion_percent,
+                "GirdlePercent": girdle_percent,
+                "language": language,
+            }
+            st.session_state.single_result = process_single_stone(params)
 
-if uploaded_file:
-    raw_df = pd.read_excel(uploaded_file)
-    df, missing_columns, mapping_df = process_dataframe(raw_df, language=language)
-    if missing_columns:
-        st.error("Missing required columns / Не хватает обязательных колонок")
-        st.write(missing_columns)
-    else:
-        analytics = make_analytics(df)
+    action_buttons(t, "single")
+    render_single_result(t, role)
 
-tabs = st.tabs([
-    t["analytics"],
-    t["top_stones"],
-    t["risks"],
-    t["stone_debug"],
-    t["certificate"],
-    t["raw_data"],
-    t["download"],
-    t["access_admin"],
-])
 
-with tabs[0]:
+def metric_row(t, analytics):
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric(t["total"], analytics["total"])
+    c2.metric(t["success"], analytics["successful"])
+    c3.metric(t["errors"], analytics["errors"])
+    avg = analytics["avg_score"]
+    c4.metric(t["avg"], round(avg, 2) if pd.notna(avg) else "—")
+
+
+def pro_mode(t, language, role):
+    if st.button("← " + t["home"]):
+        st.session_state.mode = "home"
+        st.rerun()
+    st.markdown(f"## {t['pro_mode']}")
+    st.caption(t["pro_desc"])
+    uploaded = st.file_uploader(t["upload_excel"], type=["xlsx", "xls"], help=t["excel_hint"], key="excel_upload")
+    if uploaded:
+        raw_df = pd.read_excel(uploaded)
+        df, missing, mapping_df = process_dataframe(raw_df, language=language)
+        if missing:
+            st.error("Missing required columns / Не хватает обязательных колонок")
+            st.write(missing)
+        else:
+            st.session_state.batch_df = df
+            st.session_state.mapping_df = mapping_df
+            st.session_state.batch_analytics = make_analytics(df)
+
+    action_buttons(t, "pro")
+    df = st.session_state.batch_df
+    analytics = st.session_state.batch_analytics
     if df is None or analytics is None:
-        st.info("Upload Excel to see analytics / Загрузите Excel для аналитики")
-    else:
-        st.subheader(t["summary"])
-        show_metrics(t, analytics)
-        st.markdown("<br>", unsafe_allow_html=True)
-        left, right = st.columns(2)
-        with left:
-            st.markdown('<div class="soft-card">', unsafe_allow_html=True)
-            st.subheader(t["verdicts"])
+        st.info(t["upload_to_continue"])
+        return
+    active = st.session_state.active_level
+    if not gated_level_message(t, role, active):
+        return
+    report_level = LEVEL_TO_REPORT[active]
+    metric_row(t, analytics)
+    tabs = st.tabs([t["analytics"], t["top_stones"], t["risks"], t["raw_data"], t["download"]])
+    with tabs[0]:
+        c1, c2 = st.columns(2)
+        with c1:
             st.dataframe(analytics["verdict_counts"], use_container_width=True, hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        with right:
-            st.markdown('<div class="soft-card">', unsafe_allow_html=True)
-            st.subheader(t["ranges"])
+        with c2:
             st.dataframe(analytics["score_ranges"], use_container_width=True, hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+    with tabs[1]:
+        st.dataframe(filter_report_dataframe(analytics["top_10"], report_level), use_container_width=True, hide_index=True)
+        st.dataframe(filter_report_dataframe(analytics["worst_10"], report_level), use_container_width=True, hide_index=True)
+    with tabs[2]:
+        st.dataframe(filter_report_dataframe(analytics["risk_df"], report_level), use_container_width=True, hide_index=True)
+    with tabs[3]:
+        st.dataframe(filter_report_dataframe(df, report_level), use_container_width=True, hide_index=True)
+    with tabs[4]:
+        data = create_excel_output(df, analytics, mapping_df=st.session_state.mapping_df, report_level=report_level)
+        st.download_button(t["download"], data=data, file_name="kurgin_score_result.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
 
-with tabs[1]:
-    if analytics is None:
-        st.info("Upload Excel / Загрузите Excel")
-    else:
-        st.subheader(t["top10"])
-        st.dataframe(filter_report_dataframe(analytics["top_10"], report_level), use_container_width=True)
-        st.subheader(t["worst10"])
-        st.dataframe(filter_report_dataframe(analytics["worst_10"], report_level), use_container_width=True)
 
-with tabs[2]:
-    if analytics is None:
-        st.info("Upload Excel / Загрузите Excel")
-    else:
-        st.subheader(t["risk_stones"])
-        st.dataframe(filter_report_dataframe(analytics["risk_df"], report_level), use_container_width=True)
-        st.subheader(t["critical_risk"])
-        st.dataframe(filter_report_dataframe(analytics["critical_df"], report_level), use_container_width=True)
+def profile_mode(t, role):
+    st.markdown(f"## {t['profile']}")
+    st.write({"role": role, "formula_mode": get_formula_mode(), "timestamp": datetime.utcnow().isoformat()})
 
-with tabs[3]:
-    if df is None:
-        st.info("Upload Excel / Загрузите Excel")
-    elif "Report #" in df.columns:
-        st.subheader(t["stone_debug"])
-        selected_report = st.selectbox(t["debug_select"], df["Report #"].astype(str).tolist())
-        stone = df[df["Report #"].astype(str) == selected_report].iloc[0]
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Kurgin Score", score_label(stone["Kurgin Score"]))
-        col2.metric("Triple Score", score_label(stone["Triple Score"]))
-        col3.metric("Structure Modifier", score_label(stone["Structure Modifier"]))
-        st.markdown('<div class="soft-card">', unsafe_allow_html=True)
-        st.write(f"### {t['verdict']}")
-        st.write(stone["Verdict Local"])
-        st.write(f"### {t['tags']}")
-        st.write(stone["Tags Local"] if stone["Tags Local"] else "—")
-        st.write(f"### {t['risks_title']}")
-        st.write({"Visual Check": stone["Visual Check"], "Critical Risk": stone["Critical Risk"]})
-        st.markdown('</div>', unsafe_allow_html=True)
-        diagnostics_cols = ["Nailhead", "Fisheye", "Fire Loss", "Depth Dev", "Crown Dev", "Pavilion Dev", "Balance Err", "Girdle Penalty"]
-        st.write(f"### {t['diagnostics']}")
-        st.dataframe(stone[diagnostics_cols].to_frame(name="Value"), use_container_width=True)
-        if report_level in ["Full Report", "Professional Report"]:
-            st.write(f"### {t['breakdown']}")
-            st.text(stone["Breakdown"])
-        st.write(f"### {t['full_data']}")
-        st.dataframe(filter_report_dataframe(pd.DataFrame([stone]), report_level).T, use_container_width=True)
 
-with tabs[4]:
-    st.subheader(t["certificate"])
-    st.info(t["certificate_hint"])
-    cam_img = st.camera_input("Сфотографировать сертификат / Take certificate photo")
-    file_img = st.file_uploader("Загрузить фото сертификата / Upload certificate image", type=["jpg", "jpeg", "png"])
-    img = cam_img or file_img
-    if img:
-        st.image(img, caption="Certificate preview / Предпросмотр сертификата", use_container_width=True)
-    with st.form("certificate_manual_form"):
-        report = st.text_input("Report #", value="")
-        shape = st.selectbox("Shape", ["ROUND", "OVAL", "PEAR", "CUSHION", "EMERALD", "RADIANT", "PRINCESS"])
-        c1, c2, c3 = st.columns(3)
-        crown_angle = c1.number_input("Crown Angle", value=34.5)
-        pavilion_angle = c2.number_input("Pavilion Angle", value=40.75)
-        table_percent = c3.number_input("Table %", value=56.0)
-        c4, c5, c6, c7 = st.columns(4)
-        depth_percent = c4.number_input("Depth %", value=61.5)
-        crown_percent = c5.number_input("Crown %", value=15.0)
-        pavilion_percent = c6.number_input("Pavilion %", value=43.0)
-        girdle_percent = c7.number_input("Girdle %", value=3.5)
-        submitted = st.form_submit_button("Рассчитать камень / Calculate stone")
-    if submitted:
-        params = {
-            "Report #": report or "Manual",
-            "Shape": shape,
-            "CrownAngle": crown_angle,
-            "PavilionAngle": pavilion_angle,
-            "TablePercent": table_percent,
-            "DepthPercent": depth_percent,
-            "CrownPercent": crown_percent,
-            "PavilionPercent": pavilion_percent,
-            "GirdlePercent": girdle_percent,
-            "language": language,
-        }
-        stone = process_single_stone(params)
-        st.write("### Result / Результат")
-        st.dataframe(filter_report_dataframe(pd.DataFrame([stone]), report_level), use_container_width=True)
-        if report_level in ["Full Report", "Professional Report"] and "Breakdown" in stone:
-            st.text(stone["Breakdown"])
+def main():
+    init_state()
+    language = st.sidebar.selectbox("Language / Язык", ["RU", "EN"], index=0)
+    t = TEXT[language]
+    role = st.sidebar.selectbox(t["role"], ROLES, index=0)
+    st.sidebar.caption("MVP access simulation. Next: real auth/payment.")
+    hero(t)
 
-with tabs[5]:
-    if df is None:
-        st.info("Upload Excel / Загрузите Excel")
-    else:
-        st.subheader(t["raw_table"])
-        st.dataframe(filter_report_dataframe(df, report_level), use_container_width=True)
+    if st.session_state.mode == "home":
+        mode_selector(t)
+    elif st.session_state.mode == "single":
+        single_mode(t, language, role)
+    elif st.session_state.mode == "pro":
+        pro_mode(t, language, role)
+    elif st.session_state.mode == "profile":
+        profile_mode(t, role)
 
-with tabs[6]:
-    if df is None or analytics is None:
-        st.info("Upload Excel / Загрузите Excel")
-    else:
-        st.subheader(t["download_result"])
-        excel_data = create_excel_output(df, analytics, mapping_df=mapping_df, report_level=report_level)
-        st.download_button(label=t["download_excel"], data=excel_data, file_name="kurgin_score_result.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    bottom_nav(t)
 
-with tabs[7]:
-    st.subheader("Access Admin / Админка доступа")
-    st.caption("MVP: настройки сохраняются в access_settings.json")
-    new_settings = {}
-    for r in ROLES:
-        new_settings[r] = st.multiselect(f"{r}", REPORT_LEVELS, default=access_settings.get(r, []))
-    if st.button("Save Access Settings / Сохранить настройки доступа"):
-        save_access_settings(new_settings)
-        st.success("Saved / Сохранено")
+
+if __name__ == "__main__":
+    main()

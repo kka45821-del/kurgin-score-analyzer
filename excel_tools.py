@@ -1,7 +1,7 @@
 from io import BytesIO
 import pandas as pd
 
-from core_formula.main_engine import get_final_diamond_analysis
+from formula_client.engine_client import calculate_stone
 from data_models.stone import StoneInput
 from excel_processing.column_mapping import apply_column_mapping
 from platform_config.app_config import UNSUPPORTED_SHAPE_MESSAGE
@@ -53,7 +53,7 @@ Shape: {shape}
             result["Validation Errors"] = "; ".join(validation_errors)
             return result
         stone = StoneInput.from_row(row)
-        result = get_final_diamond_analysis(**stone.to_engine_kwargs())
+        result = calculate_stone(stone.to_engine_kwargs())
         return pd.Series({
             "Engine Version": result["engine_version"],
             "Kurgin Score": result["final_score"],
