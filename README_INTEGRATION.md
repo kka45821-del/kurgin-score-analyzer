@@ -225,3 +225,15 @@ scripts/generate_api_secret.py
 ```
 
 This prepares the actual Selectel staging run. Official KURGIN Score remains unchanged.
+
+
+## v1.12.4 Selectel Staging Execution Kit
+
+Added executable server scripts under:
+
+```text
+deployment/selectel_staging/server_scripts/
+```
+
+This stage is ready for actual Selectel server execution.
+Official KURGIN Score remains unchanged.

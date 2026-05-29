@@ -1,17 +1,17 @@
 {
-  "version": "v1.12.3",
-  "name": "Selectel Staging Deployment Plan",
+  "version": "v1.12.4",
+  "name": "Selectel Staging Execution Kit",
   "base": "v1.10.7 Multilingual PDF",
-  "created_utc": "2026-05-29T21:58:20Z",
+  "created_utc": "2026-05-29T23:27:57Z",
   "official_score_changed": false,
   "focus": [
-    "Selectel staging deployment",
-    "docker compose staging",
+    "executable staging deployment scripts",
+    "server bootstrap",
+    "container start/update",
     "staging smoke tests",
-    "security checklist",
-    "acceptance criteria"
+    "diagnostics collection"
   ],
-  "recommended_next": "Run staging deploy on Selectel and capture smoke test results",
+  "recommended_next": "Run scripts on Selectel staging server",
   "candidate_implemented": true,
   "candidate_mode": "class_cap_only"
 }
