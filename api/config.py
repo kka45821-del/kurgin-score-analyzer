@@ -13,7 +13,7 @@ def _split_csv(value: str | None) -> List[str]:
 
 @dataclass(frozen=True)
 class ApiSettings:
-    api_version: str = "v1.12.0"
+    api_version: str = "v1.12.3"
     service_name: str = "KURGIN Formula API"
     environment: str = os.getenv("KURGIN_API_ENV", "development")
     api_secret: str = os.getenv("KURGIN_API_SECRET", "")

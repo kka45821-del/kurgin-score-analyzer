@@ -210,3 +210,18 @@ REPO_SYNC_MANIFEST.json
 This package is ready to sync into `kka45821-del/kurgin-score-analyzer`.
 
 Official KURGIN Score remains unchanged.
+
+
+## v1.12.3 Selectel Staging Deployment Plan
+
+Added:
+
+```text
+docker-compose.staging.yml
+deployment/selectel_staging/
+scripts/staging_smoke_test.py
+scripts/validate_staging_env.py
+scripts/generate_api_secret.py
+```
+
+This prepares the actual Selectel staging run. Official KURGIN Score remains unchanged.

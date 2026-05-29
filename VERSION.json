@@ -1,17 +1,17 @@
 {
-  "version": "v1.12.2",
-  "name": "Repository Sync + CI Gate",
+  "version": "v1.12.3",
+  "name": "Selectel Staging Deployment Plan",
   "base": "v1.10.7 Multilingual PDF",
-  "created_utc": "2026-05-29T11:49:41Z",
+  "created_utc": "2026-05-29T21:58:20Z",
   "official_score_changed": false,
   "focus": [
-    "GitHub Actions CI",
-    "repo-ready sync package",
-    "core/api/platform smoke checks",
-    "formula regression smoke",
-    "repository hygiene"
+    "Selectel staging deployment",
+    "docker compose staging",
+    "staging smoke tests",
+    "security checklist",
+    "acceptance criteria"
   ],
-  "recommended_next": "Sync to GitHub locally, confirm CI, then Selectel staging deployment",
+  "recommended_next": "Run staging deploy on Selectel and capture smoke test results",
   "candidate_implemented": true,
   "candidate_mode": "class_cap_only"
 }

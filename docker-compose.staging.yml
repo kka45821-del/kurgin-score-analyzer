@@ -1,0 +1,17 @@
+services:
+  kurgin-formula-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kurgin-formula-api-staging
+    restart: unless-stopped
+    env_file:
+      - .env.staging
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/v1/ready', timeout=5).read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

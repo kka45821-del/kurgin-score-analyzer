@@ -6,3 +6,5 @@ pandas
 openpyxl
 xlsxwriter
 reportlab
+httpx
+requests
