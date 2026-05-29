@@ -4,7 +4,11 @@ from datetime import datetime, timezone
 
 from openpyxl import Workbook
 
-from scripts.smoke_final_excel_contract import PUBLIC_CATALOG_IMPORT_COLUMNS, REQUIRED_SHEETS
+from scripts.smoke_final_excel_contract import (
+    FORBIDDEN_PUBLIC_COLUMNS,
+    PUBLIC_CATALOG_IMPORT_COLUMNS,
+    REQUIRED_SHEETS,
+)
 
 CONTRACT_NAME = "FINAL_ANALYZER_EXCEL_OUTPUT_CONTRACT"
 CONTRACT_VERSION = "0.1"
@@ -77,6 +81,25 @@ def _append_header(workbook: Workbook, sheet_name: str, columns: list[str]) -> N
     workbook[sheet_name].append(columns)
 
 
+def _append_dict_rows(workbook: Workbook, sheet_name: str, columns: list[str], rows: list[dict] | None) -> None:
+    if not rows:
+        return
+    sheet = workbook[sheet_name]
+    for row in rows:
+        sheet.append([row.get(column, "") for column in columns])
+
+
+def _validate_public_rows(public_rows: list[dict]) -> None:
+    forbidden = set(FORBIDDEN_PUBLIC_COLUMNS)
+    for index, row in enumerate(public_rows, start=1):
+        forbidden_keys = sorted(forbidden.intersection(row.keys()))
+        if forbidden_keys:
+            raise ValueError(
+                "PUBLIC_CATALOG_IMPORT row "
+                f"{index} contains forbidden public columns: {', '.join(forbidden_keys)}"
+            )
+
+
 def _populate_readme_schema(workbook: Workbook) -> None:
     sheet = workbook["README_SCHEMA"]
     sheet.append(README_SCHEMA_COLUMNS)
@@ -107,4 +130,26 @@ def build_empty_final_workbook() -> Workbook:
     _append_header(workbook, "INTERNAL_DIAGNOSTICS", INTERNAL_DIAGNOSTICS_COLUMNS)
     _populate_readme_schema(workbook)
 
+    return workbook
+
+
+def build_final_workbook(
+    public_rows: list[dict],
+    analyzer_rows: list[dict] | None = None,
+    validation_rows: list[dict] | None = None,
+    diagnostics_rows: list[dict] | None = None,
+) -> Workbook:
+    """Build a final Analyzer workbook from already prepared safe rows.
+
+    This function only writes rows into the final contract workbook. It does not
+    calculate the formula, mutate the existing Excel generator, or touch PDF/report
+    generation.
+    """
+    _validate_public_rows(public_rows)
+
+    workbook = build_empty_final_workbook()
+    _append_dict_rows(workbook, ADMIN_IMPORT_SHEET, PUBLIC_CATALOG_IMPORT_COLUMNS, public_rows)
+    _append_dict_rows(workbook, "ANALYZER_RESULTS", ANALYZER_RESULTS_COLUMNS, analyzer_rows)
+    _append_dict_rows(workbook, "VALIDATION_ERRORS", VALIDATION_ERRORS_COLUMNS, validation_rows)
+    _append_dict_rows(workbook, "INTERNAL_DIAGNOSTICS", INTERNAL_DIAGNOSTICS_COLUMNS, diagnostics_rows)
     return workbook
