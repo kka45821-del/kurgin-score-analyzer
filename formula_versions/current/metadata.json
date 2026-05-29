@@ -1,0 +1,8 @@
+{
+  "version_id": "current",
+  "name": "Current Local Formula",
+  "type": "baseline",
+  "engine_version_source": "config_settings.engine_config.ENGINE_VERSION",
+  "official": true,
+  "official_score_changed": false
+}

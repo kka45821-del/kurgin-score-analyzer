@@ -1,0 +1,49 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "KURGIN Formula API",
+    "version": "v1.11.0-draft"
+  },
+  "paths": {
+    "/v1/health": {
+      "get": {
+        "summary": "Formula API health/version check",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/analyze/stone": {
+      "post": {
+        "summary": "Analyze one diamond",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Analysis result"
+          }
+        }
+      }
+    },
+    "/v1/analyze/batch": {
+      "post": {
+        "summary": "Analyze batch input",
+        "responses": {
+          "200": {
+            "description": "Batch analysis"
+          }
+        }
+      }
+    }
+  }
+}

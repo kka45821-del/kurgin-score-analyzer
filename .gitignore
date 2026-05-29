@@ -1,32 +1,19 @@
-# Python
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
 *.pyd
-.Python
+.env
 .venv/
 venv/
-env/
-ENV/
-
-# Streamlit / local runtime
-.streamlit/secrets.toml
-*.log
-
-# Archives and installers
 *.zip
-*.exe
-*.msi
-
-# OS / editors
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-
-# Data / exports
-exports/
+!deployment/**/*.zip
 *.xlsx
 *.xls
-*.csv
 *.pdf
+*.csv
+/mnt/
+/output/
+/outputs/
+/tmp/
+/temp/
+.DS_Store

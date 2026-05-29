@@ -1,0 +1,22 @@
+{
+  "schema_version": "KURGIN Platform Card v1.12.1",
+  "endpoint": "/v1/platform/stone-card",
+  "purpose": "Compact payload for KURGIN Platform Tools UI",
+  "stable_sections": [
+    "identity",
+    "stone",
+    "score",
+    "tags",
+    "summary",
+    "measurements",
+    "quality",
+    "report",
+    "version",
+    "actions"
+  ],
+  "experimental_section": "experimental",
+  "notes": [
+    "Frontend may render card from this payload without knowing formula internals.",
+    "Experimental fields must be visually marked internal/preview until promoted."
+  ]
+}

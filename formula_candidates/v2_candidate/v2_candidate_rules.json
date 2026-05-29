@@ -1,0 +1,140 @@
+{
+  "candidate_id": "experimental_v2_candidate",
+  "candidate_name": "KURGIN Formula Candidate v2 - Class Cap First",
+  "status": "design_ready_not_implemented",
+  "official_score_changed": false,
+  "recommended_first_variant": "class_cap_only",
+  "expected_diameter": {
+    "model": "6.45 * carat^(1/3)",
+    "base": 6.45,
+    "shape_scope": [
+      "ROUND"
+    ]
+  },
+  "spread_status_rules": [
+    {
+      "status": "Hidden Weight Risk",
+      "spread_delta_lt": -3.0
+    },
+    {
+      "status": "Small for Weight",
+      "spread_delta_gte": -3.0,
+      "spread_delta_lt": -1.5
+    },
+    {
+      "status": "Good Spread",
+      "spread_delta_gte": -1.5,
+      "spread_delta_lte": 1.5
+    },
+    {
+      "status": "Wide Spread",
+      "spread_delta_gt": 1.5,
+      "spread_delta_lte": 3.0
+    },
+    {
+      "status": "Wide but Risky",
+      "spread_delta_gt": 3.0
+    }
+  ],
+  "additional_wide_risky_rule": {
+    "spread_delta_gt": 1.5,
+    "depth_percent_lt": 59.0,
+    "status": "Wide but Risky"
+  },
+  "roundness_rules": [
+    {
+      "status": "Excellent Roundness",
+      "roundness_lte": 0.5
+    },
+    {
+      "status": "Good Roundness",
+      "roundness_gt": 0.5,
+      "roundness_lte": 1.0
+    },
+    {
+      "status": "Roundness Check",
+      "roundness_gt": 1.0,
+      "roundness_lte": 1.5
+    },
+    {
+      "status": "Out-of-round Risk",
+      "roundness_gt": 1.5
+    }
+  ],
+  "class_cap_rules": [
+    {
+      "if_base_class": "Elite",
+      "if_spread": "Small for Weight",
+      "cap": "Premium"
+    },
+    {
+      "if_base_class": "Elite",
+      "if_spread": "Hidden Weight Risk",
+      "cap": "High"
+    },
+    {
+      "if_base_class": "Premium",
+      "if_spread": "Hidden Weight Risk",
+      "cap": "High"
+    },
+    {
+      "if_base_class": "High",
+      "if_spread": "Hidden Weight Risk",
+      "cap": "Standard"
+    },
+    {
+      "if_min_base_class": "High",
+      "if_roundness": "Out-of-round Risk",
+      "cap": "High"
+    },
+    {
+      "if_min_base_class": "High",
+      "if_spread": "Wide but Risky",
+      "cap": "High"
+    }
+  ],
+  "modifier_preview_rules": {
+    "enabled_in_first_variant": false,
+    "max_positive": 0.0,
+    "max_negative": -4.0,
+    "small_for_weight": [
+      -0.5,
+      -1.5
+    ],
+    "hidden_weight_risk": [
+      -2.0,
+      -3.0
+    ],
+    "wide_but_risky": [
+      -1.0,
+      -2.5
+    ],
+    "roundness_check": [
+      -0.5,
+      -1.0
+    ],
+    "out_of_round_risk": [
+      -1.0,
+      -2.0
+    ],
+    "measurement_inconsistency": 0
+  },
+  "data_quality_guards": {
+    "measurement_missing": "do_not_apply_cap_or_modifier",
+    "measurement_failed": "do_not_apply_cap_or_modifier",
+    "measurement_conflict": "review_only",
+    "measurement_consistency_warning": "review_only",
+    "catalog_data_only": "not_calculated",
+    "missing_geometry": "not_calculated",
+    "unsupported_shape": "not_calculated"
+  },
+  "acceptance_criteria": {
+    "mean_score_delta_min": -0.75,
+    "mean_score_delta_max": 0.0,
+    "max_class_change_rate": 0.05,
+    "max_class_change_rate_hard_fail": 0.1,
+    "good_spread_penalty_allowed": false,
+    "dirty_measurements_penalty_allowed": false,
+    "large_diameter_positive_boost_allowed": false
+  }
+}

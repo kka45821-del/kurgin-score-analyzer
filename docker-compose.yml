@@ -1,0 +1,11 @@
+services:
+  kurgin-formula-api:
+    build: .
+    container_name: kurgin-formula-api
+    ports:
+      - "8000:8000"
+    environment:
+      KURGIN_API_ENV: development
+      KURGIN_API_SECRET: ""
+      KURGIN_ALLOWED_ORIGINS: "*"
+      KURGIN_MAX_BATCH_ROWS: "5000"

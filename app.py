@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from access_control.access_manager import ROLES, REPORT_LEVELS, load_access_settings, get_allowed_levels
-from excel_tools import create_excel_output, make_analytics, process_dataframe, process_single_stone
+from excel_tools import create_analysis_package, create_excel_output, make_analytics, process_dataframe, process_single_stone
 from formula_client.engine_client import get_formula_mode
 from formula_modules.interpretation.interpretation_engine import get_tag_interpretations
 from report_templates.report_columns import filter_report_dataframe
@@ -68,6 +68,10 @@ TEXT = {
         "risks": "Риски",
         "raw_data": "Данные",
         "download": "Скачать",
+        "download_excel": "Скачать Excel",
+        "download_package": "Скачать полный пакет Excel + PDF",
+        "download_package_top": "Скачать Excel + PDF для TOP камней",
+        "download_package_all": "Скачать Excel + PDF для всех рассчитанных",
         "total": "Всего",
         "success": "Рассчитано",
         "errors": "Ошибки",
@@ -126,6 +130,10 @@ TEXT = {
         "risks": "Risks",
         "raw_data": "Data",
         "download": "Download",
+        "download_excel": "Download Excel",
+        "download_package": "Download full Excel + PDF package",
+        "download_package_top": "Download Excel + PDF for TOP stones",
+        "download_package_all": "Download Excel + PDF for all calculated stones",
         "total": "Total",
         "success": "Calculated",
         "errors": "Errors",
@@ -296,7 +304,7 @@ def render_single_result(t, role):
     st.markdown("</div>", unsafe_allow_html=True)
 
     if active == "pdf":
-        pdf_data = create_single_stone_pdf(stone, language="RU")
+        pdf_data = create_single_stone_pdf(stone, language="MULTI")
         title = str(stone.get("Stone Title", "kurgin_report")).replace(" ", "_").replace("/", "_")
         st.success(t.get("pdf_ready", "PDF report is ready."))
         st.download_button(
@@ -340,8 +348,57 @@ def single_mode(t, language, role):
             st.info(t["ocr_later"])
     with tab3:
         with st.form("manual_form"):
-            report = st.text_input("Report #", value="Manual")
-            shape = st.selectbox("Shape", ["ROUND", "OVAL", "PEAR", "CUSHION", "EMERALD", "RADIANT", "PRINCESS"])
+            st.markdown("### Основные данные камня")
+            c0a, c0b, c0c = st.columns(3)
+            stock = c0a.text_input("Stock #", value="")
+            report = c0b.text_input("Report #", value="Manual")
+            lab = c0c.text_input("Lab", value="IGI")
+
+            c0d, c0e, c0f, c0g = st.columns(4)
+            shape = c0d.selectbox("Shape", ["ROUND", "OVAL", "PEAR", "CUSHION", "EMERALD", "RADIANT", "PRINCESS"])
+            weight = c0e.text_input("Weight", value="")
+            color = c0f.text_input("Color", value="")
+            clarity = c0g.text_input("Clarity", value="")
+
+            c0h, c0i, c0j = st.columns(3)
+            cut = c0h.text_input("Cut", value="")
+            polish = c0i.text_input("Polish", value="")
+            symmetry = c0j.text_input("Symmetry", value="")
+
+            c0k, c0l = st.columns(2)
+            fluorescence_intensity = c0k.text_input("Fluorescence Intensity", value="")
+            fluorescence_color = c0l.text_input("Fluorescence Color", value="")
+
+            measurements = st.text_input("Measurements", value="", help="Например: 6.360x6.400x3.970")
+
+            with st.expander("Дополнительные данные сертификата", expanded=False):
+                cA, cB, cC = st.columns(3)
+                availability = cA.text_input("Availability", value="")
+                location = cB.text_input("Location", value="")
+                treatment = cC.text_input("Treatment", value="")
+
+                cD, cE, cF = st.columns(3)
+                growth_method = cD.text_input("Growth Method", value="")
+                diamond_type = cE.text_input("Diamond Type", value="")
+                inscription = cF.text_input("Inscription", value="")
+
+                cert_comment = st.text_area("Cert comment", value="", height=80)
+                cert_file = st.text_input("CertFile", value="")
+
+            with st.expander("Визуальные признаки и включения", expanded=False):
+                cV1, cV2, cV3, cV4 = st.columns(4)
+                shade = cV1.text_input("Shade", value="")
+                milky = cV2.text_input("Milky", value="")
+                eye_clean = cV3.text_input("Eye Clean", value="")
+                bgm = cV4.text_input("BGM", value="")
+
+                key_to_symbols = st.text_input("KeyToSymbols", value="")
+                cI1, cI2, cI3 = st.columns(3)
+                white_inclusion = cI1.text_input("White Inclusion", value="")
+                black_inclusion = cI2.text_input("Black Inclusion", value="")
+                open_inclusion = cI3.text_input("Open Inclusion", value="")
+
+            st.markdown("### Геометрия и пропорции")
             c1, c2 = st.columns(2)
             crown_angle = c1.number_input("Crown Angle", value=34.5)
             pavilion_angle = c2.number_input("Pavilion Angle", value=40.75)
@@ -352,11 +409,48 @@ def single_mode(t, language, role):
             crown_percent = c5.number_input("Crown %", value=15.0)
             pavilion_percent = c6.number_input("Pavilion %", value=43.0)
             girdle_percent = c7.number_input("Girdle %", value=3.5)
+
+            c8, c9, c10, c11 = st.columns(4)
+            girdle_thin = c8.text_input("Girdle Thin", value="")
+            girdle_thick = c9.text_input("Girdle Thick", value="")
+            girdle_condition = c10.text_input("Girdle Condition", value="")
+            culet_size = c11.text_input("Culet Size", value="")
+            culet_condition = st.text_input("Culet Condition", value="")
+
             submitted = st.form_submit_button(t["manual_calculate"], use_container_width=True)
+
         if submitted:
             params = {
+                "Stock #": stock,
+                "Availability": availability,
                 "Report #": report or "Manual",
+                "Lab": lab,
                 "Shape": shape,
+                "Weight": weight,
+                "Color": color,
+                "Clarity": clarity,
+                "Cut": cut,
+                "Polish": polish,
+                "Symmetry": symmetry,
+                "Fluorescence": fluorescence_intensity,
+                "Fluorescence Intensity": fluorescence_intensity,
+                "Fluorescence Color": fluorescence_color,
+                "Measurements": measurements,
+                "Location": location,
+                "Treatment": treatment,
+                "Growth Method": growth_method,
+                "Diamond Type": diamond_type,
+                "Inscription": inscription,
+                "Cert comment": cert_comment,
+                "CertFile": cert_file,
+                "Shade": shade,
+                "Milky": milky,
+                "Eye Clean": eye_clean,
+                "BGM": bgm,
+                "KeyToSymbols": key_to_symbols,
+                "White Inclusion": white_inclusion,
+                "Black Inclusion": black_inclusion,
+                "Open Inclusion": open_inclusion,
                 "CrownAngle": crown_angle,
                 "PavilionAngle": pavilion_angle,
                 "TablePercent": table_percent,
@@ -364,6 +458,11 @@ def single_mode(t, language, role):
                 "CrownPercent": crown_percent,
                 "PavilionPercent": pavilion_percent,
                 "GirdlePercent": girdle_percent,
+                "GirdleThin": girdle_thin,
+                "GirdleThick": girdle_thick,
+                "GirdleCondition": girdle_condition,
+                "CuletSize": culet_size,
+                "CuletCondition": culet_condition,
                 "language": language,
             }
             st.session_state.single_result = process_single_stone(params)
@@ -392,12 +491,17 @@ def pro_mode(t, language, role):
         raw_df = pd.read_excel(uploaded)
         df, missing, mapping_df = process_dataframe(raw_df, language=language)
         if missing:
-            st.error("Missing required columns / Не хватает обязательных колонок")
+            st.warning("Missing required columns were converted into Issues / Недостающие колонки перенесены в Issues")
             st.write(missing)
-        else:
-            st.session_state.batch_df = df
-            st.session_state.mapping_df = mapping_df
-            st.session_state.batch_analytics = make_analytics(df)
+        st.session_state.batch_df = df
+        st.session_state.mapping_df = mapping_df
+        st.session_state.batch_analytics = make_analytics(df)
+
+        ok_count = int((df.get("Calculation Status", pd.Series(dtype=str)) == "OK").sum())
+        issue_count = int((df.get("Calculation Status", pd.Series(dtype=str)) != "OK").sum())
+        mapped_count = int((mapping_df["Status"].astype(str) != "not mapped").sum()) if "Status" in mapping_df.columns else 0
+        total_cols = len(mapping_df)
+        st.success(f"Upload check: {ok_count} ready / {issue_count} issues · Columns recognized: {mapped_count}/{total_cols}")
 
     action_buttons(t, "pro")
     df = st.session_state.batch_df
@@ -426,7 +530,43 @@ def pro_mode(t, language, role):
         st.dataframe(filter_report_dataframe(df, report_level), use_container_width=True, hide_index=True)
     with tabs[4]:
         data = create_excel_output(df, analytics, mapping_df=st.session_state.mapping_df, report_level=report_level)
-        st.download_button(t["download"], data=data, file_name="kurgin_score_result.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", use_container_width=True)
+        st.download_button(
+            t.get("download_excel", t["download"]),
+            data=data,
+            file_name="kurgin_score_result.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True,
+        )
+
+        package_top = create_analysis_package(
+            df,
+            analytics,
+            mapping_df=st.session_state.mapping_df,
+            report_level=report_level,
+            pdf_mode="top_only",
+        )
+        st.download_button(
+            t.get("download_package_top", "Download Excel + TOP PDFs"),
+            data=package_top,
+            file_name="kurgin_analysis_top_pdf_package.zip",
+            mime="application/zip",
+            use_container_width=True,
+        )
+
+        package_all = create_analysis_package(
+            df,
+            analytics,
+            mapping_df=st.session_state.mapping_df,
+            report_level=report_level,
+            pdf_mode="all_ok",
+        )
+        st.download_button(
+            t.get("download_package_all", "Download Excel + all PDFs"),
+            data=package_all,
+            file_name="kurgin_analysis_all_pdf_package.zip",
+            mime="application/zip",
+            use_container_width=True,
+        )
 
 
 def reports_mode(t, role):

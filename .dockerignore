@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+venv/
+*.zip
+*.xlsx
+*.xls
+*.pdf
+*.csv
+output/
+outputs/
+tmp/
+temp/
+.git/

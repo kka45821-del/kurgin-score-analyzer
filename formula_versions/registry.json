@@ -1,0 +1,25 @@
+{
+  "default_versions": [
+    "current",
+    "experimental_v2_candidate"
+  ],
+  "versions": {
+    "current": {
+      "module": "formula_versions.current.runner",
+      "type": "baseline",
+      "active": true
+    },
+    "experimental_v2_candidate": {
+      "module": "formula_versions.experimental.v2_candidate.runner",
+      "type": "experimental",
+      "active": true
+    }
+  },
+  "design_briefs": {
+    "experimental_v2_candidate": {
+      "brief_path": "formula_candidates/v2_candidate/FORMULA_CANDIDATE_V2_BRIEF.md",
+      "rules_path": "formula_candidates/v2_candidate/v2_candidate_rules.json",
+      "status": "design_ready_not_implemented"
+    }
+  }
+}

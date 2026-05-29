@@ -1,0 +1,30 @@
+{
+  "version": "v1.11.8",
+  "object": "visual_validation_promotion_gate",
+  "minimum_complete_rows": {
+    "absolute": 5,
+    "relative": 0.6
+  },
+  "cap_review": {
+    "minimum_completed_cap_rows": 1,
+    "pass_agree_rate": 0.7,
+    "revise_if_below": 0.5
+  },
+  "control_review": {
+    "max_false_concern_count": 0
+  },
+  "needs_more_data": {
+    "max_absolute": 2,
+    "max_relative": 0.25
+  },
+  "decisions": [
+    "NO DATA",
+    "INSUFFICIENT DATA",
+    "INSUFFICIENT CAP REVIEW",
+    "NEEDS MORE MEDIA",
+    "PASS FOR PUBLIC CLASS CAP",
+    "REVISE CANDIDATE",
+    "MIXED REVIEW"
+  ],
+  "note": "This gate does not promote formula automatically. It only recommends next action."
+}

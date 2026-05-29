@@ -1,0 +1,88 @@
+{
+  "version": "v1.11.7",
+  "object": "visual_market_validation",
+  "required_fields": [
+    "Review ID",
+    "Report #",
+    "Reviewer",
+    "Media Available",
+    "Visual Size Rating",
+    "Brightness Rating",
+    "Fire Rating",
+    "Pattern/Symmetry Rating",
+    "Marketability",
+    "Jeweler Decision",
+    "Candidate Cap Decision",
+    "Recommended Public Class"
+  ],
+  "controlled_values": {
+    "Media Available": [
+      "None",
+      "Photo",
+      "Video",
+      "Photo + Video"
+    ],
+    "Rating": [
+      "Strong",
+      "Acceptable",
+      "Weak",
+      "Concern",
+      "Not visible"
+    ],
+    "Visual Size Rating": [
+      "Strong",
+      "Acceptable",
+      "Small",
+      "Too Wide / Risky",
+      "Not visible"
+    ],
+    "Eye Clean / Inclusions": [
+      "Clean",
+      "Acceptable",
+      "Visible concern",
+      "Not visible"
+    ],
+    "Milky/Shade Observation": [
+      "None visible",
+      "Mild concern",
+      "Clear concern",
+      "Not visible"
+    ],
+    "Marketability": [
+      "High",
+      "Medium",
+      "Low",
+      "Needs price context"
+    ],
+    "Jeweler Decision": [
+      "Accept",
+      "Review",
+      "Reject"
+    ],
+    "Candidate Cap Decision": [
+      "Agree",
+      "Disagree",
+      "Needs more data"
+    ],
+    "Recommended Public Class": [
+      "Elite",
+      "Premium",
+      "High",
+      "Standard",
+      "Fair",
+      "Poor",
+      "Rejected",
+      "No change",
+      "Needs more data"
+    ],
+    "Needs Additional Data": [
+      "No",
+      "Yes"
+    ]
+  },
+  "decision_meaning": {
+    "Agree": "Candidate cap appears justified by visual/market review",
+    "Disagree": "Candidate cap appears too strict or incorrect",
+    "Needs more data": "Cannot decide without better photo/video or expert inspection"
+  }
+}

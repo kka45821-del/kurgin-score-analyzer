@@ -1,0 +1,43 @@
+{
+  "version": "v1.12.2",
+  "name": "Repository Sync + CI Gate",
+  "created_utc": "2026-05-29T11:49:41Z",
+  "official_score_changed": false,
+  "target_repo": "kka45821-del/kurgin-score-analyzer",
+  "repo_current_state_checked": {
+    "repo_initialized": true,
+    "repo_has_old_requirements": true,
+    "repo_has_no_ci_detected": true
+  },
+  "repo_write_performed": false,
+  "reason_repo_write_not_performed": "Current GitHub connector exposes repository read/search/fetch tools but not write/commit tools.",
+  "required_paths_present": {
+    "api/main.py": true,
+    "api/routes/analyze.py": true,
+    "api/routes/platform.py": true,
+    "api/services/core_service.py": true,
+    "api/services/platform_card_service.py": true,
+    "kurgin_core/analyzer.py": true,
+    "platform_integration/platform_adapter.py": true,
+    "formula_versions/current/runner.py": true,
+    "formula_versions/experimental/v2_candidate/runner.py": true,
+    "formula_comparison/regression_runner.py": true,
+    "core_formula/main_engine.py": true,
+    "core_formula/triple_engine.py": true,
+    "core_formula/structure_engine.py": true,
+    "config_settings/engine_config.py": true,
+    "excel_processing/column_mapping.py": true,
+    "excel_processing/field_enrichment.py": true,
+    "report_templates/pdf_single_stone_report.py": true,
+    ".github/workflows/ci.yml": true,
+    "Dockerfile": true,
+    "docker-compose.yml": true,
+    "requirements-api.txt": true,
+    "scripts/ci_compile.py": true,
+    "scripts/ci_repo_hygiene.py": true,
+    "scripts/contract_test_api.py": true,
+    "scripts/smoke_test_core.py": true,
+    "scripts/smoke_test_platform_card.py": true
+  },
+  "ci_workflow": ".github/workflows/ci.yml"
+}

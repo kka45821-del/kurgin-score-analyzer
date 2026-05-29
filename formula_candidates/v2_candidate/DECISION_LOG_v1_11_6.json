@@ -1,0 +1,69 @@
+{
+  "version": "v1.11.6",
+  "candidate": "experimental_v2_candidate",
+  "mode": "class_cap_only",
+  "official_score_changed": false,
+  "decision": "PASS FOR REVIEW. Keep as experimental; recommended next step is more real visual validation before promotion.",
+  "metrics": [
+    {
+      "Dataset": "real",
+      "Rows": 114,
+      "OK Rows": 94,
+      "Avg Delta": -0.01,
+      "Min Delta": -0.94,
+      "Max Delta": 0.0,
+      "Band Changes": 1,
+      "Cap Applied": 1,
+      "Verdict Changes": 1
+    },
+    {
+      "Dataset": "synthetic",
+      "Rows": 10,
+      "OK Rows": 7,
+      "Avg Delta": 0.0,
+      "Min Delta": 0.0,
+      "Max Delta": 0.0,
+      "Band Changes": 0,
+      "Cap Applied": 0,
+      "Verdict Changes": 0
+    }
+  ],
+  "acceptance": [
+    {
+      "Check": "Average score delta stable",
+      "Result": "PASS",
+      "Value": -0.01,
+      "Threshold": "-0.75 to 0.00",
+      "Notes": "Candidate should be conservative"
+    },
+    {
+      "Check": "Class change rate acceptable",
+      "Result": "PASS",
+      "Value": "1.06%",
+      "Threshold": "<= 5%",
+      "Notes": "Only explainable caps should change class"
+    },
+    {
+      "Check": "Hard fail class change rate avoided",
+      "Result": "PASS",
+      "Value": "1.06%",
+      "Threshold": "<= 10%",
+      "Notes": "Hard fail if above 10%"
+    },
+    {
+      "Check": "Candidate is not aggressive",
+      "Result": "PASS",
+      "Value": 1,
+      "Threshold": "<= max(1, 2% of OK)",
+      "Notes": "First class-cap candidate should catch rare cases only"
+    },
+    {
+      "Check": "Synthetic unchanged",
+      "Result": "PASS",
+      "Value": 0,
+      "Threshold": "0 class changes",
+      "Notes": "Synthetic cases remain stable in first candidate"
+    }
+  ],
+  "recommended_next": "v1.11.7 Visual/Market Validation Set"
+}

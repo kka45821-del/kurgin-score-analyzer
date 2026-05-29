@@ -1,0 +1,17 @@
+{
+  "version": "v1.12.2",
+  "name": "Repository Sync + CI Gate",
+  "base": "v1.10.7 Multilingual PDF",
+  "created_utc": "2026-05-29T11:49:41Z",
+  "official_score_changed": false,
+  "focus": [
+    "GitHub Actions CI",
+    "repo-ready sync package",
+    "core/api/platform smoke checks",
+    "formula regression smoke",
+    "repository hygiene"
+  ],
+  "recommended_next": "Sync to GitHub locally, confirm CI, then Selectel staging deployment",
+  "candidate_implemented": true,
+  "candidate_mode": "class_cap_only"
+}

@@ -1,0 +1,11 @@
+{
+  "version_id": "experimental_v2_candidate",
+  "name": "Experimental v2 Candidate — Class Cap Only",
+  "type": "experimental",
+  "status": "implemented_for_regression",
+  "official_score_changed": false,
+  "mode": "class_cap_only",
+  "uses_row_data": true,
+  "uses_measurement_spread": true,
+  "created_utc": "2026-05-29T01:21:27Z"
+}
