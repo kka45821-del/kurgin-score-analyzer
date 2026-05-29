@@ -1,0 +1,91 @@
+name: KURGIN Analyzer CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile Python files
+        run: |
+          python -m py_compile app.py
+          python -m py_compile excel_tools.py
+          python -m py_compile core_formula/main_engine.py
+          python -m py_compile core_formula/triple_engine.py
+          python -m py_compile core_formula/structure_engine.py
+          python -m py_compile formula_client/engine_client.py
+          python -m py_compile formula_client/local_client.py
+          python -m py_compile data_models/stone.py
+          python -m py_compile validation/input_validator.py
+          python -m py_compile excel_output/__init__.py
+          python -m py_compile excel_output/final_workbook_builder.py
+          python -m py_compile excel_output/final_row_mapper.py
+          python -m py_compile excel_output/final_mapper_bridge.py
+          python -m py_compile excel_output/final_export.py
+          python -m py_compile scripts/smoke_final_excel_contract.py
+          python -m py_compile scripts/smoke_final_workbook_builder.py
+          python -m py_compile scripts/smoke_final_workbook_rows.py
+          python -m py_compile scripts/smoke_final_row_mapper.py
+          python -m py_compile scripts/smoke_final_mapper_bridge.py
+          python -m py_compile scripts/smoke_final_excel_e2e.py
+          python -m py_compile scripts/smoke_final_export.py
+
+      - name: Check forbidden production patterns
+        shell: bash
+        run: |
+          set -euo pipefail
+          pattern='onerror|textarea|new[[:space:]]+Function|eval[[:space:]]*\(|createOrder'
+          targets=(core_formula formula_client data_models validation excel_output scripts app.py excel_tools.py)
+          if grep -RInE "$pattern" -- "${targets[@]}"; then
+            echo "Forbidden production pattern found. Remove it or move it out of production code."
+            exit 1
+          fi
+
+      - name: Run final Excel contract smoke
+        run: |
+          python scripts/smoke_final_excel_contract.py
+
+      - name: Run final workbook builder smoke
+        run: |
+          python scripts/smoke_final_workbook_builder.py
+
+      - name: Run final workbook rows smoke
+        run: |
+          python scripts/smoke_final_workbook_rows.py
+
+      - name: Run final row mapper smoke
+        run: |
+          python scripts/smoke_final_row_mapper.py
+
+      - name: Run final mapper bridge smoke
+        run: |
+          python scripts/smoke_final_mapper_bridge.py
+
+      - name: Run final Excel E2E smoke
+        run: |
+          python scripts/smoke_final_excel_e2e.py
+
+      - name: Run final export smoke
+        run: |
+          python scripts/smoke_final_export.py
