@@ -32,6 +32,7 @@ BLOCKED_INTERNAL_FIELDS = {
     "debug_trace",
     "traceback",
     "exception",
+    "raw_engine_output",
     "formula_source",
     "coefficient_formula",
     "certificate_claim",
