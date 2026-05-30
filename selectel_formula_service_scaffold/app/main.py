@@ -3,12 +3,14 @@ from __future__ import annotations
 import os
 from typing import Any, Dict
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 
 SERVICE_NAME = "KURGIN Formula Service"
 FORMULA_CONTRACT_VERSION = "v1/formula/stone"
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 class StoneEngineInput(BaseModel):
@@ -45,7 +47,9 @@ def version_payload() -> Dict[str, str]:
     }
 
 
-def require_api_key(authorization: str | None = Header(default=None)) -> bool:
+def require_api_key(
+    credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme),
+) -> bool:
     expected = settings()["api_key"]
     if not expected:
         raise HTTPException(
@@ -53,14 +57,13 @@ def require_api_key(authorization: str | None = Header(default=None)) -> bool:
             detail="Formula API key is not configured",
         )
 
-    prefix = "Bearer "
-    if not authorization or not authorization.startswith(prefix):
+    if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Formula API bearer token",
         )
 
-    supplied = authorization[len(prefix):].strip()
+    supplied = credentials.credentials.strip()
     if supplied != expected:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
