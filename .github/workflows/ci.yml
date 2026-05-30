@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONDONTW]ITEBYTECODE: "1"
       PYTHONPATH: "."
 
     steps:
@@ -50,7 +50,7 @@ jobs:
         run: |
           mkdir -p output
           python -m formula_comparison.regression_runner \
-            --input golden_dataset/golden_dataset_template.xlsx \
+            --input golden_dataset/golden_dataset_template.csv \
             --output output/ci_regression_report.csv \
             --summary output/ci_regression_summary.csv \
             --versions current experimental_v2_candidate
