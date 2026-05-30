@@ -50,6 +50,10 @@ jobs:
         run: |
           python scripts/contract_test_formula_client.py
 
+      - name: Analyzer output schema lock test
+        run: |
+          python scripts/contract_test_output_schema.py
+
       - name: Formula regression smoke test
         run: |
           mkdir -p output
