@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      PYTHONDONTW]ITEBYTECODE: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
       PYTHONPATH: "."
 
     steps:
