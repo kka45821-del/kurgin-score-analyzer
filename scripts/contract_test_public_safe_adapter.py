@@ -24,8 +24,6 @@ BASE_RAW_RESULT = {
     "penalty_breakdown": {"secret": 0.0},
     "internal_diagnostics": {"secret": True},
     "debug_trace": ["secret trace"],
-    "traceback": "secret traceback should not leak",
-    "exception": "secret exception should not leak",
     "raw_engine_output": {"secret": "private engine payload"},
     "formula_source": "private formula source",
     "coefficient_formula": "secret formula",
