@@ -56,6 +56,10 @@ jobs:
         run: |
           python scripts/contract_test_formula_client.py
 
+      - name: Public-safe analyzer adapter contract test
+        run: |
+          python scripts/contract_test_public_safe_adapter.py
+
       - name: Analyzer output schema lock test
         run: |
           python scripts/contract_test_output_schema.py
