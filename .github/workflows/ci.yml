@@ -13,6 +13,7 @@ jobs:
     timeout-minutes: 15
     env:
       PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONPATH: "."
 
     steps:
       - name: Checkout
@@ -48,7 +49,11 @@ jobs:
       - name: Formula regression smoke test
         run: |
           mkdir -p output
-          python -m formula_comparison.regression_runner             --input golden_dataset/golden_dataset_template.xlsx             --output output/ci_regression_report.csv             --summary output/ci_regression_summary.csv             --versions current experimental_v2_candidate
+          python -m formula_comparison.regression_runner \
+            --input golden_dataset/golden_dataset_template.xlsx \
+            --output output/ci_regression_report.csv \
+            --summary output/ci_regression_summary.csv \
+            --versions current experimental_v2_candidate
           rm -rf output
 
       - name: Repository hygiene
