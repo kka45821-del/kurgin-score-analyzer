@@ -64,6 +64,10 @@ jobs:
         run: |
           python scripts/smoke_test_selectel_formula_staging.py
 
+      - name: Local vs cloud equivalence check
+        run: |
+          python scripts/compare_local_vs_cloud_formula.py
+
       - name: Formula regression smoke test
         run: |
           mkdir -p output
