@@ -20,7 +20,7 @@ OK_PUBLIC_INPUT = {
     "crown_height": 15,
     "pavilion_depth": 43,
     "girdle": 3.5,
-    "fluorescence": "None",
+    "fluorescence": "Faint",
     "report_number": "PUBLIC001",
 }
 
@@ -101,7 +101,7 @@ def test_ok_public_input_returns_public_safe_output():
         assert params["CrownPercent"] == 15
         assert params["PavilionPercent"] == 43
         assert params["GirdlePercent"] == 3.5
-        assert params["Fluorescence Intensity"] == "None"
+        assert params["Fluorescence Intensity"] == "Faint"
         assert params["Report #"] == "PUBLIC001"
         assert language == "RU"
         return RAW_ANALYZER_RESULT
