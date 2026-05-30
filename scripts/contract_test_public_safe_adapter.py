@@ -24,6 +24,9 @@ BASE_RAW_RESULT = {
     "penalty_breakdown": {"secret": 0.0},
     "internal_diagnostics": {"secret": True},
     "debug_trace": ["secret trace"],
+    "traceback": "secret traceback should not leak",
+    "exception": "secret exception should not leak",
+    "raw_engine_output": {"secret": "private engine payload"},
     "formula_source": "private formula source",
     "coefficient_formula": "secret formula",
     "certificate_claim": "not allowed",
@@ -52,7 +55,13 @@ def _assert_public_shape(payload):
         "triple_score",
         "structure_modifier",
         "raw_formula",
+        "weights",
+        "penalty_breakdown",
+        "internal_diagnostics",
+        "debug_trace",
+        "raw_engine_output",
         "coefficient_formula",
+        "formula_source",
         "certificate_claim",
         "appraisal_claim",
         "price_effect",
@@ -86,6 +95,7 @@ def test_unsupported_state_is_safe():
         "status": "UNSUPPORTED_SHAPE",
         "reason": "Shape OVAL is not supported by current ROUND model",
         "diagnostics": {"secret": True},
+        "raw_engine_output": {"secret": "private payload"},
     })
     _assert_public_shape(payload)
     assert payload["status"] == "unsupported"
@@ -97,6 +107,7 @@ def test_incomplete_state_is_safe():
         "status": "MISSING_GEOMETRY",
         "message": "Missing required geometry fields: CrownAngle",
         "breakdown": "internal detail",
+        "penalty_breakdown": {"secret": True},
     })
     _assert_public_shape(payload)
     assert payload["status"] == "incomplete"
@@ -108,6 +119,7 @@ def test_error_state_does_not_leak_traceback_or_exception_text():
         "status": "error",
         "exception": "ValueError: secret formula failed",
         "traceback": "Traceback secret internal stack",
+        "raw_engine_output": {"secret": "private payload"},
     })
     _assert_public_shape(payload)
     assert payload["status"] == "error"
