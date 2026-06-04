@@ -1139,7 +1139,7 @@ def create_excel_output(df, analytics, mapping_df=None, report_level="Profession
     return output.getvalue()
 
 
-def create_analysis_package(df, analytics, mapping_df=None, report_level="Professional Report", pdf_mode="all_ok"):
+def create_analysis_package(df, analytics, mapping_df=None, report_level="Professional Report", pdf_mode="all_ok", max_pdfs=None):
     """Create ZIP package with compact Excel and PDF report per calculated OK stone."""
     package_buffer = BytesIO()
     df = add_pdf_report_columns(df)
@@ -1163,6 +1163,14 @@ def create_analysis_package(df, analytics, mapping_df=None, report_level="Profes
             ok_df = df.iloc[0:0].copy()
         else:
             ok_df = df[df["Calculation Status"] == "OK"].copy()
+
+        if max_pdfs is not None:
+            try:
+                limit = int(max_pdfs)
+            except (TypeError, ValueError):
+                limit = None
+            if limit is not None and limit >= 0:
+                ok_df = ok_df.head(limit)
 
         for _, row in ok_df.iterrows():
             pdf_file = str(row.get("PDF Report File", "")).strip()
