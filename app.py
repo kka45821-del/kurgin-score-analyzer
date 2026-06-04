@@ -313,6 +313,7 @@ def render_single_result(t, role):
             file_name=f"{title}_KURGIN_Report.pdf",
             mime="application/pdf",
             use_container_width=True,
+            on_click="ignore",
         )
 
     st.dataframe(filter_report_dataframe(pd.DataFrame([stone]), report_level), use_container_width=True, hide_index=True)
@@ -536,6 +537,7 @@ def pro_mode(t, language, role):
             file_name="kurgin_score_result.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
+            on_click="ignore",
         )
 
         package_top = create_analysis_package(
@@ -544,6 +546,7 @@ def pro_mode(t, language, role):
             mapping_df=st.session_state.mapping_df,
             report_level=report_level,
             pdf_mode="top_only",
+            max_pdfs=25,
         )
         st.download_button(
             t.get("download_package_top", "Download Excel + TOP PDFs"),
@@ -551,6 +554,7 @@ def pro_mode(t, language, role):
             file_name="kurgin_analysis_top_pdf_package.zip",
             mime="application/zip",
             use_container_width=True,
+            on_click="ignore",
         )
 
         package_all = create_analysis_package(
@@ -559,6 +563,7 @@ def pro_mode(t, language, role):
             mapping_df=st.session_state.mapping_df,
             report_level=report_level,
             pdf_mode="all_ok",
+            max_pdfs=50,
         )
         st.download_button(
             t.get("download_package_all", "Download Excel + all PDFs"),
@@ -566,6 +571,7 @@ def pro_mode(t, language, role):
             file_name="kurgin_analysis_all_pdf_package.zip",
             mime="application/zip",
             use_container_width=True,
+            on_click="ignore",
         )
 
 
