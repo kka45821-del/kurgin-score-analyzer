@@ -865,13 +865,12 @@ def _ok_rows(df):
 
 
 def _results_dataframe(df):
-    return _select_columns(_ok_rows(df), RESULTS_COLUMNS)
+    return _select_columns(df.copy(), RESULTS_COLUMNS)
 
 
 def _details_dataframe(df):
-    ok_df = _ok_rows(df)
-    detail_df = _select_columns(ok_df, DETAILS_COLUMNS)
-    return detail_df if not detail_df.empty else ok_df.copy()
+    detail_df = _select_columns(df.copy(), DETAILS_COLUMNS)
+    return detail_df if not detail_df.empty else df.copy()
 
 
 def _missing_formula_fields(row):
