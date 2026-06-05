@@ -864,14 +864,21 @@ def _ok_rows(df):
     return df[df["Calculation Status"] == "OK"].copy()
 
 
+def _results_details_rows(df):
+    if "Calculation Status" not in df.columns:
+        return df.copy()
+    statuses = df["Calculation Status"].astype(str)
+    return df[statuses.isin(["OK", "UNSUPPORTED_SHAPE"])].copy()
+
+
 def _results_dataframe(df):
-    return _select_columns(_ok_rows(df), RESULTS_COLUMNS)
+    return _select_columns(_results_details_rows(df), RESULTS_COLUMNS)
 
 
 def _details_dataframe(df):
-    ok_df = _ok_rows(df)
-    detail_df = _select_columns(ok_df, DETAILS_COLUMNS)
-    return detail_df if not detail_df.empty else ok_df.copy()
+    export_df = _results_details_rows(df)
+    detail_df = _select_columns(export_df, DETAILS_COLUMNS)
+    return detail_df if not detail_df.empty else export_df.copy()
 
 
 def _missing_formula_fields(row):
