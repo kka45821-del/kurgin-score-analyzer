@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit as st
 
 from access_control.access_manager import ROLES, REPORT_LEVELS, load_access_settings, get_allowed_levels
-from excel_tools import create_analysis_package, create_excel_output, make_analytics, process_dataframe, process_single_stone
+from excel_tools import create_excel_output, make_analytics, process_dataframe, process_single_stone
 from formula_client.engine_client import get_formula_mode
 from formula_modules.interpretation.interpretation_engine import get_tag_interpretations
 from report_templates.report_columns import filter_report_dataframe
@@ -252,16 +252,39 @@ def bottom_nav(t):
 
 
 def mode_selector(t):
-    st.markdown(f"### {t['choose_mode']}")
-    c1, c2 = st.columns(2)
+    st.markdown("### Основные сценарии")
+    c1, c2, c3 = st.columns(3)
+
     with c1:
-        st.markdown(f"""<div class="kg-card dark"><h3>◇ {t['single_mode']}</h3><div class="kg-muted">{t['single_desc']}</div></div>""", unsafe_allow_html=True)
-        if st.button(t["single_mode"], use_container_width=True):
+        st.markdown(
+            "<div class='kg-card dark'><h3>◇ KURGIN Score 1 камня</h3>"
+            "<div class='kg-muted'>Быстрый расчёт коэффициента по параметрам камня.</div></div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("KURGIN Score 1 камня", key="mode_single_score", use_container_width=True):
+            st.session_state.active_level = "score"
             st.session_state.mode = "single"
             st.rerun()
+
     with c2:
-        st.markdown(f"""<div class="kg-card green"><h3>▦ {t['pro_mode']}</h3><div class="kg-muted">{t['pro_desc']}</div></div>""", unsafe_allow_html=True)
-        if st.button(t["pro_mode"], use_container_width=True):
+        st.markdown(
+            "<div class='kg-card dark'><h3>◇ Полный анализ 1 камня</h3>"
+            "<div class='kg-muted'>Полный разбор одного камня по введённым параметрам.</div></div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("Полный анализ 1 камня", key="mode_single_full", use_container_width=True):
+            st.session_state.active_level = "full"
+            st.session_state.mode = "single"
+            st.rerun()
+
+    with c3:
+        st.markdown(
+            "<div class='kg-card green'><h3>▦ Excel-анализ</h3>"
+            "<div class='kg-muted'>Загрузил Excel → увидел результат → скачал Excel.</div></div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("Загрузить Excel", key="mode_excel", use_container_width=True):
+            st.session_state.active_level = "professional"
             st.session_state.mode = "pro"
             st.rerun()
 
@@ -333,20 +356,13 @@ def single_mode(t, language, role):
     if st.button("← " + t["home"]):
         st.session_state.mode = "home"
         st.rerun()
-    st.markdown(f"## {t['single_mode']}")
-    st.caption(t["single_desc"])
+    if st.session_state.active_level not in ["score", "full"]:
+        st.session_state.active_level = "score"
 
-    tab1, tab2, tab3 = st.tabs([t["upload_cert"], t["take_photo"], t["manual_input"]])
-    with tab1:
-        cert = st.file_uploader(t["upload_cert"], type=["pdf", "jpg", "jpeg", "png"], key="cert_upload")
-        st.info(t["ocr_later"])
-        if cert is not None and not cert.name.lower().endswith(".pdf"):
-            st.image(cert, caption="Certificate preview", use_container_width=True)
-    with tab2:
-        cam = st.camera_input(t["take_photo"], key="cert_camera")
-        if cam is not None:
-            st.image(cam, caption="Certificate photo", use_container_width=True)
-            st.info(t["ocr_later"])
+    single_title = "KURGIN Score 1 камня" if st.session_state.active_level == "score" else "Полный анализ 1 камня"
+    st.markdown(f"## {single_title}")
+    st.caption("Ручной ввод параметров камня.")
+    tab3 = st.container()
     with tab3:
         with st.form("manual_form"):
             st.markdown("### Основные данные камня")
@@ -468,7 +484,6 @@ def single_mode(t, language, role):
             }
             st.session_state.single_result = process_single_stone(params)
 
-    action_buttons(t, "single")
     render_single_result(t, role)
 
 
@@ -515,72 +530,34 @@ def pro_mode(t, language, role):
         total_cols = len(mapping_df)
         st.success(f"Upload check: {ok_count} ready / {issue_count} issues · Columns recognized: {mapped_count}/{total_cols}")
 
-    action_buttons(t, "pro")
     df = st.session_state.batch_df
     analytics = st.session_state.batch_analytics
     if df is None or analytics is None:
         st.info(t["upload_to_continue"])
         return
-    active = st.session_state.active_level
-    if not gated_level_message(t, role, active):
-        return
-    report_level = LEVEL_TO_REPORT[active]
+
+    report_level = "Professional Report"
     metric_row(t, analytics)
-    tabs = st.tabs([t["analytics"], t["top_stones"], t["risks"], t["raw_data"], t["download"]])
+
+    tabs = st.tabs([t["analytics"], t["raw_data"], t["download"]])
+
     with tabs[0]:
         c1, c2 = st.columns(2)
         with c1:
             st.dataframe(analytics["verdict_counts"], use_container_width=True, hide_index=True)
         with c2:
             st.dataframe(analytics["score_ranges"], use_container_width=True, hide_index=True)
+
     with tabs[1]:
-        st.dataframe(filter_report_dataframe(analytics["top_10"], report_level), use_container_width=True, hide_index=True)
-        st.dataframe(filter_report_dataframe(analytics["worst_10"], report_level), use_container_width=True, hide_index=True)
-    with tabs[2]:
-        st.dataframe(filter_report_dataframe(analytics["risk_df"], report_level), use_container_width=True, hide_index=True)
-    with tabs[3]:
         st.dataframe(filter_report_dataframe(df, report_level), use_container_width=True, hide_index=True)
-    with tabs[4]:
+
+    with tabs[2]:
         data = create_excel_output(df, analytics, mapping_df=st.session_state.mapping_df, report_level=report_level)
         st.download_button(
             t.get("download_excel", t["download"]),
             data=data,
             file_name="kurgin_score_result.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
-            on_click="ignore",
-        )
-
-        package_top = create_analysis_package(
-            df,
-            analytics,
-            mapping_df=st.session_state.mapping_df,
-            report_level=report_level,
-            pdf_mode="top_only",
-            max_pdfs=25,
-        )
-        st.download_button(
-            t.get("download_package_top", "Download Excel + TOP PDFs"),
-            data=package_top,
-            file_name="kurgin_analysis_top_pdf_package.zip",
-            mime="application/zip",
-            use_container_width=True,
-            on_click="ignore",
-        )
-
-        package_all = create_analysis_package(
-            df,
-            analytics,
-            mapping_df=st.session_state.mapping_df,
-            report_level=report_level,
-            pdf_mode="all_ok",
-            max_pdfs=50,
-        )
-        st.download_button(
-            t.get("download_package_all", "Download Excel + all PDFs"),
-            data=package_all,
-            file_name="kurgin_analysis_all_pdf_package.zip",
-            mime="application/zip",
             use_container_width=True,
             on_click="ignore",
         )
@@ -632,12 +609,9 @@ def main():
         single_mode(t, language, role)
     elif st.session_state.mode == "pro":
         pro_mode(t, language, role)
-    elif st.session_state.mode == "reports":
-        reports_mode(t, role)
-    elif st.session_state.mode == "profile":
-        profile_mode(t, role)
-
-    bottom_nav(t)
+    else:
+        st.session_state.mode = "home"
+        st.rerun()
 
 
 if __name__ == "__main__":
