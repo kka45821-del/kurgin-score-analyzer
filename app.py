@@ -489,7 +489,18 @@ def pro_mode(t, language, role):
     st.caption(t["pro_desc"])
     uploaded = st.file_uploader(t["upload_excel"], type=["xlsx", "xls"], help=t["excel_hint"], key="excel_upload")
     if uploaded:
-        raw_df = pd.read_excel(uploaded, keep_default_na=False)
+        raw_df = pd.read_excel(uploaded)
+        try:
+            uploaded.seek(0)
+            fluorescence_df = pd.read_excel(uploaded, keep_default_na=False)
+            for source_column in fluorescence_df.columns:
+                if "fluor" in str(source_column).lower():
+                    raw_df[source_column] = fluorescence_df[source_column]
+        finally:
+            try:
+                uploaded.seek(0)
+            except Exception:
+                pass
         df, missing, mapping_df = process_dataframe(raw_df, language=language)
         if missing:
             st.warning("Missing required columns were converted into Issues / Недостающие колонки перенесены в Issues")
