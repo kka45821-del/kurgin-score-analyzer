@@ -240,6 +240,23 @@ def enrich_dataframe_fields(df):
     if "Fluorescence Intensity" in df.columns and "Fluorescence" not in df.columns:
         df["Fluorescence"] = df["Fluorescence Intensity"]
 
+    if "Fluorescence" in df.columns and "Fluorescence Intensity" not in df.columns:
+        df["Fluorescence Intensity"] = df["Fluorescence"]
+
+    if "Fluorescence" in df.columns and "Fluorescence Intensity" in df.columns:
+        fluorescence_blank = (
+            df["Fluorescence"].isna()
+            | (df["Fluorescence"].astype(str).str.strip() == "")
+            | (df["Fluorescence"].astype(str).str.strip().str.lower() == "nan")
+        )
+        intensity_blank = (
+            df["Fluorescence Intensity"].isna()
+            | (df["Fluorescence Intensity"].astype(str).str.strip() == "")
+            | (df["Fluorescence Intensity"].astype(str).str.strip().str.lower() == "nan")
+        )
+        df.loc[fluorescence_blank, "Fluorescence"] = df.loc[fluorescence_blank, "Fluorescence Intensity"]
+        df.loc[intensity_blank, "Fluorescence Intensity"] = df.loc[intensity_blank, "Fluorescence"]
+
     if "Treatment" in df.columns:
         if "Growth Method" not in df.columns:
             df["Growth Method"] = None

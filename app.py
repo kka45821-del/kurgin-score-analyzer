@@ -489,7 +489,7 @@ def pro_mode(t, language, role):
     st.caption(t["pro_desc"])
     uploaded = st.file_uploader(t["upload_excel"], type=["xlsx", "xls"], help=t["excel_hint"], key="excel_upload")
     if uploaded:
-        raw_df = pd.read_excel(uploaded)
+        raw_df = pd.read_excel(uploaded, keep_default_na=False)
         df, missing, mapping_df = process_dataframe(raw_df, language=language)
         if missing:
             st.warning("Missing required columns were converted into Issues / Недостающие колонки перенесены в Issues")

@@ -72,7 +72,7 @@ TAG_COLUMNS = [f"tag{i}" for i in range(1, 7)]
 
 RESULTS_COLUMNS = [
     "Stock #", "Availability", "Report #", "Lab", "Shape", "Weight", "Color", "Clarity",
-    "Cut", "Polish", "Symmetry", "Fluorescence Intensity", "Measurements",
+    "Cut", "Polish", "Symmetry", "Fluorescence", "Fluorescence Intensity", "Fluorescence Color", "Measurements",
     "MinDiameter", "MaxDiameter", "AvgDiameter", "DepthMM", "DiameterDiff", "RoundnessDeviation",
     "ExpectedDiameter", "SpreadDelta %", "VisualSpreadStatus", "DiameterSymmetryStatus",
     "MeasurementConsistencyStatus", "DiameterSpreadModifierPreview", "ScoreClassCapPreview",
