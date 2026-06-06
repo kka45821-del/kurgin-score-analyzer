@@ -326,14 +326,14 @@ def render_single_result(t, role):
     st.markdown(f"<div class='kg-verdict'>{verdict}</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    if active == "pdf":
+    if active in ("full", "pdf"):
         pdf_data = create_single_stone_pdf(stone, language="MULTI")
         title = str(stone.get("Stone Title", "kurgin_report")).replace(" ", "_").replace("/", "_")
         st.success(t.get("pdf_ready", "PDF report is ready."))
         st.download_button(
-            label="Скачать PDF / Download PDF",
+            label="Скачать PDF-отчёт / Download PDF Report",
             data=pdf_data,
-            file_name=f"{title}_KURGIN_Report.pdf",
+            file_name=f"{title}_KURGIN_Full_Analysis_Report.pdf",
             mime="application/pdf",
             use_container_width=True,
             on_click="ignore",
