@@ -365,121 +365,103 @@ def single_mode(t, language, role):
     tab3 = st.container()
     with tab3:
         with st.form("manual_form"):
-            st.markdown("### Основные данные камня")
-            c0a, c0b, c0c = st.columns(3)
-            stock = c0a.text_input("Stock #", value="")
-            report = c0b.text_input("Report #", value="Manual")
-            lab = c0c.text_input("Lab", value="IGI")
+            st.markdown("### 1. Данные отчёта")
+            lab = st.text_input("Lab", value="IGI")
+            report_number = st.text_input("Report Number", value="")
+            report_date = st.text_input("Report Date", value="")
+            description = st.text_input("Description", value="LABORATORY GROWN DIAMOND")
 
-            c0d, c0e, c0f, c0g = st.columns(4)
-            shape = c0d.selectbox("Shape", ["ROUND", "OVAL", "PEAR", "CUSHION", "EMERALD", "RADIANT", "PRINCESS"])
-            weight = c0e.text_input("Weight", value="")
-            color = c0f.text_input("Color", value="")
-            clarity = c0g.text_input("Clarity", value="")
+            st.markdown("### 2. Основные данные камня")
+            shape_cutting_style = st.text_input("Shape and Cutting Style", value="ROUND BRILLIANT")
+            measurements = st.text_input("Measurements", value="", help="Например: 7.40 - 7.43 X 4.47 MM")
+            carat_weight = st.text_input("Carat Weight", value="", help="Например: 1.49 или 1.49 CARAT")
+            color_grade = st.text_input("Color Grade", value="")
+            clarity_grade = st.text_input("Clarity Grade", value="")
+            cut_grade = st.text_input("Cut Grade", value="IDEAL")
 
-            c0h, c0i, c0j = st.columns(3)
-            cut = c0h.text_input("Cut", value="")
-            polish = c0i.text_input("Polish", value="")
-            symmetry = c0j.text_input("Symmetry", value="")
+            st.markdown("### 3. Дополнительная оценка")
+            polish = st.text_input("Polish", value="EXCELLENT")
+            symmetry = st.text_input("Symmetry", value="EXCELLENT")
+            fluorescence = st.text_input("Fluorescence", value="NONE")
 
-            c0k, c0l = st.columns(2)
-            fluorescence_intensity = c0k.text_input("Fluorescence Intensity", value="")
-            fluorescence_color = c0l.text_input("Fluorescence Color", value="")
-
-            measurements = st.text_input("Measurements", value="", help="Например: 6.360x6.400x3.970")
-
-            with st.expander("Дополнительные данные сертификата", expanded=False):
-                cA, cB, cC = st.columns(3)
-                availability = cA.text_input("Availability", value="")
-                location = cB.text_input("Location", value="")
-                treatment = cC.text_input("Treatment", value="")
-
-                cD, cE, cF = st.columns(3)
-                growth_method = cD.text_input("Growth Method", value="")
-                diamond_type = cE.text_input("Diamond Type", value="")
-                inscription = cF.text_input("Inscription", value="")
-
-                cert_comment = st.text_area("Cert comment", value="", height=80)
-                cert_file = st.text_input("CertFile", value="")
-
-            with st.expander("Визуальные признаки и включения", expanded=False):
-                cV1, cV2, cV3, cV4 = st.columns(4)
-                shade = cV1.text_input("Shade", value="")
-                milky = cV2.text_input("Milky", value="")
-                eye_clean = cV3.text_input("Eye Clean", value="")
-                bgm = cV4.text_input("BGM", value="")
-
-                key_to_symbols = st.text_input("KeyToSymbols", value="")
-                cI1, cI2, cI3 = st.columns(3)
-                white_inclusion = cI1.text_input("White Inclusion", value="")
-                black_inclusion = cI2.text_input("Black Inclusion", value="")
-                open_inclusion = cI3.text_input("Open Inclusion", value="")
-
-            st.markdown("### Геометрия и пропорции")
-            c1, c2 = st.columns(2)
-            crown_angle = c1.number_input("Crown Angle", value=34.5)
-            pavilion_angle = c2.number_input("Pavilion Angle", value=40.75)
-            c3, c4 = st.columns(2)
-            table_percent = c3.number_input("Table %", value=56.0)
-            depth_percent = c4.number_input("Depth %", value=61.5)
-            c5, c6, c7 = st.columns(3)
-            crown_percent = c5.number_input("Crown %", value=15.0)
-            pavilion_percent = c6.number_input("Pavilion %", value=43.0)
-            girdle_percent = c7.number_input("Girdle %", value=3.5)
-
-            c8, c9, c10, c11 = st.columns(4)
-            girdle_thin = c8.text_input("Girdle Thin", value="")
-            girdle_thick = c9.text_input("Girdle Thick", value="")
-            girdle_condition = c10.text_input("Girdle Condition", value="")
-            culet_size = c11.text_input("Culet Size", value="")
-            culet_condition = st.text_input("Culet Condition", value="")
+            st.markdown("### 4. Пропорции")
+            depth_percent = st.text_input("Depth %", value="")
+            table_percent = st.text_input("Table %", value="")
+            crown_height_percent = st.text_input("Crown Height %", value="")
+            crown_angle = st.text_input("Crown Angle", value="")
+            pavilion_angle = st.text_input("Pavilion Angle", value="")
+            pavilion_depth_percent = st.text_input("Pavilion Depth %", value="")
 
             submitted = st.form_submit_button(t["manual_calculate"], use_container_width=True)
 
         if submitted:
+            def _num(value):
+                raw = str(value or "").strip().replace(",", ".")
+                cleaned = "".join(ch for ch in raw if ch.isdigit() or ch in ".-")
+                if cleaned in ["", ".", "-", "-."]:
+                    return None
+                try:
+                    return float(cleaned)
+                except Exception:
+                    return None
+
+            def _fmt(value):
+                if value is None:
+                    return ""
+                return f"{value:.2f}".rstrip("0").rstrip(".")
+
+            shape_text = str(shape_cutting_style or "").strip()
+            shape_upper = shape_text.upper()
+            calc_shape = ""
+            for token in ["ROUND", "OVAL", "PEAR", "CUSHION", "EMERALD", "RADIANT", "PRINCESS"]:
+                if token in shape_upper:
+                    calc_shape = token
+                    break
+            if not calc_shape:
+                calc_shape = shape_upper or "ROUND"
+
+            depth_value = _num(depth_percent)
+            crown_height_value = _num(crown_height_percent)
+            pavilion_depth_value = _num(pavilion_depth_percent)
+
+            derived_girdle_percent = ""
+            if depth_value is not None and crown_height_value is not None and pavilion_depth_value is not None:
+                derived_value = depth_value - crown_height_value - pavilion_depth_value
+                if derived_value > 0:
+                    derived_girdle_percent = _fmt(derived_value)
+
             params = {
-                "Stock #": stock,
-                "Availability": availability,
-                "Report #": report or "Manual",
                 "Lab": lab,
-                "Shape": shape,
-                "Weight": weight,
-                "Color": color,
-                "Clarity": clarity,
-                "Cut": cut,
+                "Report #": report_number or "Manual",
+                "Report Date": report_date,
+                "Description": description,
+
+                "Shape and Cutting Style": shape_cutting_style,
+                "Shape": calc_shape,
+                "Measurements": measurements,
+                "Weight": _fmt(_num(carat_weight)),
+                "Carat Weight": carat_weight,
+                "Color": color_grade,
+                "Color Grade": color_grade,
+                "Clarity": clarity_grade,
+                "Clarity Grade": clarity_grade,
+                "Cut": cut_grade,
+                "Cut Grade": cut_grade,
+
                 "Polish": polish,
                 "Symmetry": symmetry,
-                "Fluorescence": fluorescence_intensity,
-                "Fluorescence Intensity": fluorescence_intensity,
-                "Fluorescence Color": fluorescence_color,
-                "Measurements": measurements,
-                "Location": location,
-                "Treatment": treatment,
-                "Growth Method": growth_method,
-                "Diamond Type": diamond_type,
-                "Inscription": inscription,
-                "Cert comment": cert_comment,
-                "CertFile": cert_file,
-                "Shade": shade,
-                "Milky": milky,
-                "Eye Clean": eye_clean,
-                "BGM": bgm,
-                "KeyToSymbols": key_to_symbols,
-                "White Inclusion": white_inclusion,
-                "Black Inclusion": black_inclusion,
-                "Open Inclusion": open_inclusion,
-                "CrownAngle": crown_angle,
-                "PavilionAngle": pavilion_angle,
-                "TablePercent": table_percent,
-                "DepthPercent": depth_percent,
-                "CrownPercent": crown_percent,
-                "PavilionPercent": pavilion_percent,
-                "GirdlePercent": girdle_percent,
-                "GirdleThin": girdle_thin,
-                "GirdleThick": girdle_thick,
-                "GirdleCondition": girdle_condition,
-                "CuletSize": culet_size,
-                "CuletCondition": culet_condition,
+                "Fluorescence": fluorescence,
+                "Fluorescence Intensity": fluorescence,
+
+                "DepthPercent": _fmt(depth_value),
+                "TablePercent": _fmt(_num(table_percent)),
+                "CrownPercent": _fmt(crown_height_value),
+                "CrownAngle": _fmt(_num(crown_angle)),
+                "PavilionAngle": _fmt(_num(pavilion_angle)),
+                "PavilionPercent": _fmt(pavilion_depth_value),
+                "GirdlePercent": derived_girdle_percent,
+                "GirdlePercentSource": "DERIVED_FROM_DEPTH_CROWN_PAVILION",
+
                 "language": language,
             }
             st.session_state.single_result = process_single_stone(params)
