@@ -366,48 +366,50 @@ def single_mode(t, language, role):
     with tab3:
         with st.form("manual_form"):
             st.markdown("### 1. Данные отчёта")
-            c1, c2 = st.columns(2)
-            lab = c1.text_input("Lab", value="IGI")
-            report_number = c2.text_input("Report Number", value="")
-
-            c3, c4 = st.columns(2)
-            report_date = c3.text_input("Report Date", value="")
-            description = c4.text_input("Description", value="LABORATORY GROWN DIAMOND")
+            lab = st.text_input("Lab", value="IGI")
+            report_number = st.text_input("Report Number", value="")
+            report_date = st.text_input("Report Date", value="")
+            description = st.text_input("Description", value="LABORATORY GROWN DIAMOND")
 
             st.markdown("### 2. Основные данные камня")
-            c5, c6 = st.columns(2)
-            shape_cutting_style = c5.text_input("Shape and Cutting Style", value="ROUND BRILLIANT")
-            measurements = c6.text_input("Measurements", value="", help="Например: 7.40 - 7.43 X 4.47 MM")
-
-            c7, c8, c9 = st.columns(3)
-            carat_weight = c7.text_input("Carat Weight", value="", help="Например: 1.49 или 1.49 CARAT")
-            color_grade = c8.text_input("Color Grade", value="")
-            clarity_grade = c9.text_input("Clarity Grade", value="")
-
+            shape_cutting_style = st.text_input("Shape and Cutting Style", value="ROUND BRILLIANT")
+            measurements = st.text_input("Measurements", value="", help="Например: 7.40 - 7.43 X 4.47 MM")
+            carat_weight = st.text_input("Carat Weight", value="", help="Например: 1.49 или 1.49 CARAT")
+            color_grade = st.text_input("Color Grade", value="")
+            clarity_grade = st.text_input("Clarity Grade", value="")
             cut_grade = st.text_input("Cut Grade", value="IDEAL")
 
             st.markdown("### 3. Дополнительная оценка")
-            c10, c11, c12 = st.columns(3)
-            polish = c10.text_input("Polish", value="EXCELLENT")
-            symmetry = c11.text_input("Symmetry", value="EXCELLENT")
-            fluorescence = c12.text_input("Fluorescence", value="NONE")
+            polish = st.text_input("Polish", value="EXCELLENT")
+            symmetry = st.text_input("Symmetry", value="EXCELLENT")
+            fluorescence = st.text_input("Fluorescence", value="NONE")
 
             st.markdown("### 4. Пропорции")
-            c13, c14 = st.columns(2)
-            depth_percent = c13.text_input("Depth %", value="")
-            table_percent = c14.text_input("Table %", value="")
-
-            c15, c16 = st.columns(2)
-            crown_height_percent = c15.text_input("Crown Height %", value="")
-            crown_angle = c16.text_input("Crown Angle", value="")
-
-            c17, c18 = st.columns(2)
-            pavilion_angle = c17.text_input("Pavilion Angle", value="")
-            pavilion_depth_percent = c18.text_input("Pavilion Depth %", value="")
+            depth_percent = st.text_input("Depth %", value="")
+            table_percent = st.text_input("Table %", value="")
+            crown_height_percent = st.text_input("Crown Height %", value="")
+            crown_angle = st.text_input("Crown Angle", value="")
+            pavilion_angle = st.text_input("Pavilion Angle", value="")
+            pavilion_depth_percent = st.text_input("Pavilion Depth %", value="")
 
             submitted = st.form_submit_button(t["manual_calculate"], use_container_width=True)
 
         if submitted:
+            def _num(value):
+                raw = str(value or "").strip().replace(",", ".")
+                cleaned = "".join(ch for ch in raw if ch.isdigit() or ch in ".-")
+                if cleaned in ["", ".", "-", "-."]:
+                    return None
+                try:
+                    return float(cleaned)
+                except Exception:
+                    return None
+
+            def _fmt(value):
+                if value is None:
+                    return ""
+                return f"{value:.2f}".rstrip("0").rstrip(".")
+
             shape_text = str(shape_cutting_style or "").strip()
             shape_upper = shape_text.upper()
             calc_shape = ""
@@ -418,6 +420,16 @@ def single_mode(t, language, role):
             if not calc_shape:
                 calc_shape = shape_upper or "ROUND"
 
+            depth_value = _num(depth_percent)
+            crown_height_value = _num(crown_height_percent)
+            pavilion_depth_value = _num(pavilion_depth_percent)
+
+            derived_girdle_percent = ""
+            if depth_value is not None and crown_height_value is not None and pavilion_depth_value is not None:
+                derived_value = depth_value - crown_height_value - pavilion_depth_value
+                if derived_value > 0:
+                    derived_girdle_percent = _fmt(derived_value)
+
             params = {
                 "Lab": lab,
                 "Report #": report_number or "Manual",
@@ -427,7 +439,7 @@ def single_mode(t, language, role):
                 "Shape and Cutting Style": shape_cutting_style,
                 "Shape": calc_shape,
                 "Measurements": measurements,
-                "Weight": carat_weight,
+                "Weight": _fmt(_num(carat_weight)),
                 "Carat Weight": carat_weight,
                 "Color": color_grade,
                 "Color Grade": color_grade,
@@ -441,12 +453,14 @@ def single_mode(t, language, role):
                 "Fluorescence": fluorescence,
                 "Fluorescence Intensity": fluorescence,
 
-                "DepthPercent": depth_percent,
-                "TablePercent": table_percent,
-                "CrownPercent": crown_height_percent,
-                "CrownAngle": crown_angle,
-                "PavilionAngle": pavilion_angle,
-                "PavilionPercent": pavilion_depth_percent,
+                "DepthPercent": _fmt(depth_value),
+                "TablePercent": _fmt(_num(table_percent)),
+                "CrownPercent": _fmt(crown_height_value),
+                "CrownAngle": _fmt(_num(crown_angle)),
+                "PavilionAngle": _fmt(_num(pavilion_angle)),
+                "PavilionPercent": _fmt(pavilion_depth_value),
+                "GirdlePercent": derived_girdle_percent,
+                "GirdlePercentSource": "DERIVED_FROM_DEPTH_CROWN_PAVILION",
 
                 "language": language,
             }
