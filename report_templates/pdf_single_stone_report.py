@@ -181,16 +181,12 @@ def _ml_heading(story, key, st):
     item = ML[key]
     story.append(Paragraph(item['ru'], st['h2_ru']))
     story.append(Paragraph(item['en'], st['h2_en']))
-    story.append(Paragraph(item['zh'], st['h2_zh']))
-    story.append(Paragraph(item['hy'], st['h2_hy']))
 
 
 def _ml_label_cell(ru, en, zh, hy, st):
     return [
         Paragraph(f'<b>{ru}</b>', st['tbl_key']),
         Paragraph(en, st['tbl_key']),
-        Paragraph(zh, st['tbl_key_zh']),
-        Paragraph(hy, st['tbl_key_hy']),
     ]
 
 
@@ -284,9 +280,9 @@ def _risk_label(value):
 
 
 def create_single_stone_pdf(row, language='MULTI'):
-    """Four-language KURGIN PDF report.
+    """RU/EN KURGIN PDF report.
 
-    Language order: Russian, English, Chinese, Armenian.
+    Chinese and Armenian output are temporarily disabled until the public font stack is finalized.
     The official KURGIN Score and formula are not changed.
     """
     buffer = BytesIO()
@@ -302,8 +298,6 @@ def create_single_stone_pdf(row, language='MULTI'):
 
     story.append(Paragraph(ML['title']['ru'], st['title_ru']))
     story.append(Paragraph(ML['title']['en'], st['title_en']))
-    story.append(Paragraph(ML['title']['zh'], st['title_zh']))
-    story.append(Paragraph(ML['title']['hy'], st['title_hy']))
     story.append(_identity_card(row, st))
     story.append(Spacer(1, 3))
 
@@ -322,14 +316,10 @@ def create_single_stone_pdf(row, language='MULTI'):
     _ml_heading(story, 'short', st)
     story.append(Paragraph(_safe(_row_value(row, 'interpretation_short_ru')), st['body_ru']))
     story.append(Paragraph(_safe(_row_value(row, 'interpretation_short_en')), st['body_en']))
-    story.append(Paragraph(_zh_summary(row), st['body_zh']))
-    story.append(Paragraph(_hy_summary(row), st['body_hy']))
 
     _ml_heading(story, 'recommendation', st)
     story.append(Paragraph(_safe(_row_value(row, 'recommendation_ru')), st['body_ru']))
     story.append(Paragraph(_safe(_row_value(row, 'recommendation_en')), st['body_en']))
-    story.append(Paragraph(RECOMMENDATION_TEXT['zh'], st['body_zh']))
-    story.append(Paragraph(RECOMMENDATION_TEXT['hy'], st['body_hy']))
     story.append(PageBreak())
 
     _ml_heading(story, 'certificate_geometry', st)
@@ -388,23 +378,17 @@ def create_single_stone_pdf(row, language='MULTI'):
     _ml_heading(story, 'interpretation', st)
     story.append(Paragraph(_safe(_row_value(row, 'interpretation_detail_ru')), st['body_ru']))
     story.append(Paragraph(_safe(_row_value(row, 'interpretation_detail_en')), st['body_en']))
-    story.append(Paragraph(_zh_summary(row), st['body_zh']))
-    story.append(Paragraph(_hy_summary(row), st['body_hy']))
 
     warning = _safe(_row_value(row, 'warning_ru'), '')
     if warning:
         story.append(Paragraph('Предупреждение', st['h2_ru']))
         story.append(Paragraph('Warning', st['h2_en']))
-        story.append(Paragraph('警告', st['h2_zh']))
-        story.append(Paragraph('Նախազգուշացում', st['h2_hy']))
         story.append(Paragraph(warning, st['body_ru']))
         story.append(Paragraph(_safe(_row_value(row, 'warning_en')), st['body_en']))
 
     _ml_heading(story, 'disclaimer', st)
     story.append(Paragraph(DISCLAIMER_TEXT['ru'], st['small_ru']))
     story.append(Paragraph(DISCLAIMER_TEXT['en'], st['small_en']))
-    story.append(Paragraph(DISCLAIMER_TEXT['zh'], st['small_zh']))
-    story.append(Paragraph(DISCLAIMER_TEXT['hy'], st['small_hy']))
 
     doc.build(story, onFirstPage=_footer, onLaterPages=_footer)
     return buffer.getvalue()
