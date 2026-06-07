@@ -305,7 +305,14 @@ def _build_record(row):
         active = status == "OK" and _tag_is_active(row, tag)
         if active:
             active_tags.append(tag)
-        record[meta["status_col"]] = "Active / Активен" if active else "Not triggered / Не выявлен"
+
+        if status != "OK":
+            record[meta["status_col"]] = "Not calculated / Не рассчитано"
+        elif active:
+            record[meta["status_col"]] = "Active / Активен"
+        else:
+            record[meta["status_col"]] = "Not triggered / Не выявлен"
+
         record[meta["ru_col"]] = meta["desc_ru"]
         record[meta["en_col"]] = meta["desc_en"]
 
