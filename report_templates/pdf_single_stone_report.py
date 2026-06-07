@@ -56,8 +56,6 @@ ML = {
     'stock': {'ru': 'Stock #', 'en': 'Stock #', 'zh': '库存编号', 'hy': 'Պահեստային համար'},
     'short': {'ru': 'Краткий вывод', 'en': 'Short conclusion', 'zh': '简短结论', 'hy': 'Կարճ եզրակացություն'},
     'recommendation': {'ru': 'Рекомендация', 'en': 'Recommendation', 'zh': '建议', 'hy': 'Խորհուրդ'},
-    'certificate_geometry': {'ru': 'Данные сертификата и геометрия', 'en': 'Certificate data and geometry', 'zh': '证书数据和几何参数', 'hy': 'Սերտիֆիկատի տվյալներ և երկրաչափություն'},
-    'analysis_risks': {'ru': 'KURGIN-анализ и риски', 'en': 'KURGIN analysis and risks', 'zh': 'KURGIN 分析与风险', 'hy': 'KURGIN վերլուծություն և ռիսկեր'},
     'interpretation': {'ru': 'Интерпретация', 'en': 'Interpretation', 'zh': '解读', 'hy': 'Մեկնաբանություն'},
     'disclaimer': {'ru': 'Ограничение анализа', 'en': 'Disclaimer', 'zh': '分析限制', 'hy': 'Վերլուծության սահմանափակում'},
 }
@@ -280,115 +278,255 @@ def _risk_label(value):
 
 
 def create_single_stone_pdf(row, language='MULTI'):
-    """RU/EN KURGIN PDF report.
+    """Compact RU/EN KURGIN PDF report for one stone.
 
-    Chinese and Armenian output are temporarily disabled until the public font stack is finalized.
     The official KURGIN Score and formula are not changed.
     """
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=15*mm, leftMargin=15*mm, topMargin=10*mm, bottomMargin=13*mm, title='KURGIN Diamond Analysis Report')
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=12*mm,
+        leftMargin=12*mm,
+        topMargin=9*mm,
+        bottomMargin=12*mm,
+        title='KURGIN Diamond Analysis Report',
+    )
     st = _styles()
     story = []
 
+    def esc(value):
+        if value is None:
+            text_value = "—"
+        else:
+            text_value = str(value).strip()
+            if not text_value or text_value.lower() in {"nan", "null"}:
+                text_value = "—"
+        return (
+            str(text_value)
+            .replace('&', '&amp;')
+            .replace('<', '&lt;')
+            .replace('>', '&gt;')
+        )
+
+    def para(value, style='tbl_val'):
+        return Paragraph(esc(value), st[style])
+
+    def label(ru, en):
+        return Paragraph(f'<b>{esc(ru)}</b><br/><font size="5.8">{esc(en)}</font>', st['tbl_key'])
+
+    def raw_value_from(*names, default='—'):
+        for name in names:
+            try:
+                value = row.get(name)
+            except Exception:
+                value = None
+            if value is None:
+                continue
+            text_value = str(value).strip()
+            if not text_value:
+                continue
+            if text_value.lower() in {"nan", "null"}:
+                continue
+            if text_value in {"—", "-"}:
+                continue
+            return text_value
+        return default
+
+    def value_from(*names, default='—'):
+        return esc(raw_value_from(*names, default=default))
+
+    def angle(value):
+        value = value_from(value) if isinstance(value, str) else esc(value)
+        if value == '—':
+            return value
+        return value if '°' in value else f'{value}°'
+
+    def section(title):
+        return [
+            Paragraph(f'<b>{esc(title)}</b>', st['center']),
+            '',
+            '',
+        ]
+
+    def cert_ru(text):
+        return Paragraph(f'<b>{esc(text)}</b>', st['tbl_key'])
+
+    def cert_en(text):
+        return Paragraph(esc(text), st['tbl_key'])
+
+    def certificate_table():
+        rows = [
+            section('Информация / Information'),
+            [cert_ru('Лаборатория'), cert_en('Lab'), para(value_from('Lab'))],
+            [cert_ru('Номер сертификата'), cert_en('Report Number'), para(value_from('Report #', 'Report Number'))],
+            [cert_ru('Дата отчёта'), cert_en('Report Date'), para(value_from('Report Date'))],
+            [cert_ru('Описание'), cert_en('Description'), para(value_from('Description'))],
+
+            section('Детали камня / Stone Details'),
+            [cert_ru('Форма и стиль огранки'), cert_en('Shape and Cutting Style'), para(value_from('Shape and Cutting Style', 'Shape'))],
+            [cert_ru('Размеры'), cert_en('Measurements'), para(value_from('Measurements'))],
+            [cert_ru('Вес в каратах'), cert_en('Carat Weight'), para(value_from('Carat Weight', 'Weight'))],
+            [cert_ru('Цвет'), cert_en('Color Grade'), para(value_from('Color Grade', 'Color'))],
+            [cert_ru('Чистота'), cert_en('Clarity Grade'), para(value_from('Clarity Grade', 'Clarity'))],
+
+            section('Качество / Quality'),
+            [cert_ru('Качество огранки'), cert_en('Cut Grade'), para(value_from('Cut Grade', 'Cut'))],
+            [cert_ru('Полировка'), cert_en('Polish'), para(value_from('Polish'))],
+            [cert_ru('Симметрия'), cert_en('Symmetry'), para(value_from('Symmetry'))],
+            [cert_ru('Флуоресценция'), cert_en('Fluorescence'), para(value_from('Fluorescence', 'Fluorescence Intensity'))],
+
+            section('Геометрия / Geometry'),
+            [cert_ru('Глубина %'), cert_en('Depth %'), para(value_from('DepthPercent'))],
+            [cert_ru('Таблица %'), cert_en('Table %'), para(value_from('TablePercent'))],
+            [cert_ru('Высота короны %'), cert_en('Crown Height %'), para(value_from('CrownPercent'))],
+            [cert_ru('Угол короны'), cert_en('Crown Angle'), para(angle('CrownAngle'))],
+            [cert_ru('Угол павильона'), cert_en('Pavilion Angle'), para(angle('PavilionAngle'))],
+            [cert_ru('Глубина павильона %'), cert_en('Pavilion Depth %'), para(value_from('PavilionPercent'))],
+        ]
+
+        table = Table(rows, colWidths=[52*mm, 55*mm, 60*mm], hAlign='CENTER')
+        style = [
+            ('BOX', (0, 0), (-1, -1), 0.55, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.35, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 3),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+            ('TOPPADDING', (0, 0), (-1, -1), 1.7),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 1.7),
+        ]
+
+        for idx, row_data in enumerate(rows):
+            if len(row_data) == 3 and row_data[1] == '' and row_data[2] == '':
+                style.extend([
+                    ('SPAN', (0, idx), (2, idx)),
+                    ('BACKGROUND', (0, idx), (2, idx), colors.HexColor('#F3F4F6')),
+                    ('ALIGN', (0, idx), (2, idx), 'CENTER'),
+                    ('TOPPADDING', (0, idx), (2, idx), 2.0),
+                    ('BOTTOMPADDING', (0, idx), (2, idx), 2.0),
+                ])
+
+        table.setStyle(TableStyle(style))
+        return table
+
+    def kurgin_elements_table():
+        def status_para(name):
+            return para(raw_value_from(name))
+
+        def explanation_para(name):
+            return para(raw_value_from(name))
+
+        def tag_note(status_col, explanation_col, inactive_ru):
+            status = raw_value_from(status_col, default="")
+            if status.startswith("Not calculated"):
+                return para("Не рассчитано из-за недостатка данных.")
+            if status.startswith("Not triggered"):
+                return para(inactive_ru)
+            return para(raw_value_from(explanation_col))
+
+        rows = [
+            [label('Огонь', 'Fire'), status_para('Fire Profile'), explanation_para('Fire Explanation RU')],
+            [label('Блеск', 'Brilliance'), status_para('Brilliance Profile'), explanation_para('Brilliance Explanation RU')],
+            [label('Контраст', 'Contrast'), status_para('Contrast Profile'), explanation_para('Contrast Explanation RU')],
+            [label('Баланс', 'Balance'), status_para('Balance Profile'), explanation_para('Balance Explanation RU')],
+
+            [
+                label('Идеальная сборка', 'Perfect Build'),
+                status_para('Perfect Build Status'),
+                tag_note('Perfect Build Status', 'Perfect Build Explanation RU', 'Тег идеальной сборки не сработал по текущей модели.'),
+            ],
+            [
+                label('Скрытый вес', 'Hidden Weight'),
+                status_para('Hidden Weight Status'),
+                tag_note('Hidden Weight Status', 'Hidden Weight Explanation RU', 'Признаки скрытого веса не выявлены по текущей модели.'),
+            ],
+            [
+                label('Риск тёмного центра', 'Nailhead Risk'),
+                status_para('Nailhead Risk Status'),
+                tag_note('Nailhead Risk Status', 'Nailhead Risk Explanation RU', 'Риск тёмного центра не выявлен по текущей модели.'),
+            ],
+            [
+                label('Риск рыбьего глаза', 'Fisheye Risk'),
+                status_para('Fisheye Risk Status'),
+                tag_note('Fisheye Risk Status', 'Fisheye Risk Explanation RU', 'Риск эффекта рыбьего глаза не выявлен по текущей модели.'),
+            ],
+            [
+                label('Слабая игра света', 'Low Fire'),
+                status_para('Low Fire Status'),
+                tag_note('Low Fire Status', 'Low Fire Explanation RU', 'Снижение игры света не выявлено по текущей модели.'),
+            ],
+        ]
+
+        data = [[
+            Paragraph('<b>Элемент / Element</b>', st['tbl_key']),
+            Paragraph('<b>Статус / Status</b>', st['tbl_key']),
+            Paragraph('<b>Пояснение / Explanation</b>', st['tbl_key']),
+        ]] + rows
+
+        table = Table(data, colWidths=[42*mm, 43*mm, 82*mm], hAlign='CENTER', repeatRows=1)
+        table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.55, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.30, colors.black),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#F3F4F6')),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 2.5),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 2.5),
+            ('TOPPADDING', (0, 0), (-1, -1), 1.7),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 1.7),
+        ]))
+        return table
+
     logo = _get_logo_path()
     if logo:
-        story.append(Image(logo, width=24*mm, height=24*mm, hAlign='CENTER'))
+        story.append(Image(logo, width=18*mm, height=18*mm, hAlign='CENTER'))
     else:
         story.append(Paragraph('KURGIN', st['brand']))
 
     story.append(Paragraph(ML['title']['ru'], st['title_ru']))
     story.append(Paragraph(ML['title']['en'], st['title_en']))
-    story.append(_identity_card(row, st))
-    story.append(Spacer(1, 3))
 
     score = _score(_row_value(row, 'Kurgin Score'))
-    verdict = _safe(_row_value(row, 'Verdict Local', 'Verdict'))
-    score_class = _safe(_row_value(row, 'score_band_label_ru', 'score_band_label_en'))
-    tags = _safe(_row_value(row, 'tags_all', 'Tags Local', 'Tags'), '')
+    verdict = value_from('Verdict Local', 'Verdict')
+    score_class = value_from('score_band_label_ru', 'score_band_label_en')
+    active_tags = value_from('Active KURGIN Tags', 'tags_all', 'Tags Local', 'Tags', default='')
 
+    story.append(Spacer(1, 1.5))
     story.append(Paragraph(score, st['score']))
     story.append(Paragraph('KURGIN Score / 100', st['muted_center']))
     story.append(Paragraph(f'<b>{verdict}</b>', st['center']))
-    story.append(Paragraph(f'<b>Class / Класс:</b> {score_class}', st['center']))
-    if tags:
-        story.append(Paragraph(f'<b>Tags / Теги:</b> {tags}', st['center']))
+    story.append(Paragraph(f'<b>Класс / Class:</b> {score_class}', st['center']))
+    if active_tags:
+        story.append(Paragraph(f'<b>Активные теги / Active tags:</b> {active_tags}', st['center']))
 
-    _ml_heading(story, 'short', st)
-    story.append(Paragraph(_safe(_row_value(row, 'interpretation_short_ru')), st['body_ru']))
-    story.append(Paragraph(_safe(_row_value(row, 'interpretation_short_en')), st['body_en']))
+    story.append(Spacer(1, 3))
+    story.append(Paragraph('<b>Краткий вывод / Short conclusion</b>', st['h2_ru']))
+    story.append(Paragraph(esc(_row_value(row, 'interpretation_short_ru')), st['body_ru']))
+    story.append(Paragraph(esc(_row_value(row, 'interpretation_short_en')), st['body_en']))
 
-    _ml_heading(story, 'recommendation', st)
-    story.append(Paragraph(_safe(_row_value(row, 'recommendation_ru')), st['body_ru']))
-    story.append(Paragraph(_safe(_row_value(row, 'recommendation_en')), st['body_en']))
+    story.append(Spacer(1, 2))
+    story.append(Paragraph('<b>Рекомендация / Recommendation</b>', st['h2_ru']))
+    story.append(Paragraph(esc(_row_value(row, 'recommendation_ru')), st['body_ru']))
+    story.append(Paragraph(esc(_row_value(row, 'recommendation_en')), st['body_en']))
+
+    story.append(Spacer(1, 4))
+    story.append(Paragraph('<b>Данные сертификата / Certificate Data</b>', st['h2_ru']))
+    story.append(certificate_table())
+
     story.append(PageBreak())
-
-    _ml_heading(story, 'certificate_geometry', st)
-    cert_rows = [
-        (('Огранка', 'Shape', '形状', 'Ձև'), _row_value(row, 'Shape')),
-        (('Вес', 'Weight', '重量', 'Քաշ'), _row_value(row, 'Weight')),
-        (('Цвет', 'Color', '颜色', 'Գույն'), _row_value(row, 'Color')),
-        (('Чистота', 'Clarity', '净度', 'Մաքրություն'), _row_value(row, 'Clarity')),
-        (('Огранка/полировка/симметрия', 'Cut/Polish/Symmetry', '切工/抛光/对称', 'Կտրում/փայլ/սիմետրիա'), f"{_safe(_row_value(row, 'Cut'))} / {_safe(_row_value(row, 'Polish'))} / {_safe(_row_value(row, 'Symmetry'))}"),
-        (('Флуоресценция', 'Fluorescence', '荧光', 'Ֆլուորեսցենցիա'), _row_value(row, 'Fluorescence', 'Fluorescence Intensity')),
-        (('Размеры', 'Measurements', '尺寸', 'Չափեր'), _row_value(row, 'Measurements')),
-    ]
-    geom_rows = [
-        (('Площадка / глубина', 'Table / Depth', '台面/深度', 'Սեղան/խորություն'), f"{_safe(_row_value(row, 'TablePercent'))} / {_safe(_row_value(row, 'DepthPercent'))}"),
-        (('Корона: угол / %', 'Crown angle / %', '冠部角/比例', 'Պսակի անկյուն/%'), f"{_safe(_row_value(row, 'CrownAngle'))} / {_safe(_row_value(row, 'CrownPercent'))}"),
-        (('Павильон: угол / %', 'Pavilion angle / %', '亭部角/比例', 'Պավիլիոնի անկյուն/%'), f"{_safe(_row_value(row, 'PavilionAngle'))} / {_safe(_row_value(row, 'PavilionPercent'))}"),
-        (('Рундист %', 'Girdle %', '腰棱比例', 'Գոտու %'), _row_value(row, 'GirdlePercent')),
-        (('Мин./макс. диаметр', 'Min/max diameter', '最小/最大直径', 'Նվազ./առավ. տրամագիծ'), f"{_safe(_row_value(row, 'MinDiameter'))} / {_safe(_row_value(row, 'MaxDiameter'))}"),
-        (('Средний диаметр', 'Average diameter', '平均直径', 'Միջին տրամագիծ'), _row_value(row, 'AvgDiameter')),
-        (('Высота mm', 'Depth mm', '高度 mm', 'Բարձրություն mm'), _row_value(row, 'DepthMM')),
-        (('Spread delta %', 'Spread delta %', '视觉尺寸差 %', 'Spread տարբերություն %'), _row_value(row, 'SpreadDelta %')),
-        (('Визуальный размер', 'Visual spread', '视觉尺寸', 'Տեսողական չափ'), _row_value(row, 'VisualSpreadStatus')),
-        (('Симметрия диаметра', 'Diameter symmetry', '直径对称性', 'Տրամագծի սիմետրիա'), _row_value(row, 'DiameterSymmetryStatus')),
-    ]
-    story.append(_two_col(cert_rows, geom_rows))
-    story.append(PageBreak())
-
-    _ml_heading(story, 'analysis_risks', st)
-    analysis_rows = [
-        (('KURGIN Score', 'KURGIN Score', 'KURGIN 分数', 'KURGIN միավոր'), score),
-        (('Класс', 'Class', '等级', 'Դաս'), score_class),
-        (('Triple Score', 'Triple Score', 'Triple 分数', 'Triple միավոր'), _row_value(row, 'Triple Score')),
-        (('Structure Modifier', 'Structure Modifier', '结构修正', 'Կառուցվածքային գործակից'), _row_value(row, 'Structure Modifier')),
-        (('Visual Check', 'Visual Check', '视觉检查', 'Տեսողական ստուգում'), _risk_label(_row_value(row, 'Visual Check'))),
-        (('Critical Risk', 'Critical Risk', '关键风险', 'Կրիտիկական ռիսկ'), _risk_label(_row_value(row, 'Critical Risk'))),
-        (('Полнота данных', 'Data completeness', '数据完整度', 'Տվյալների ամբողջականություն'), _row_value(row, 'Data Completeness %')),
-        (('Качество отчёта', 'Report quality', '报告质量', 'Հաշվետվության որակ'), _row_value(row, 'Report Quality Status')),
-        (('Adjusted preview', 'Adjusted preview', '调整预览', 'Ճշգրտված preview'), _row_value(row, 'AdjustedKURGINScorePreview')),
-        (('Diameter policy', 'Diameter policy', '直径策略', 'Տրամագծի քաղաքականություն'), _row_value(row, 'Diameter Policy Status')),
-    ]
-    risk_rows = [
-        (('Nailhead', 'Nailhead', '黑心风险', 'Nailhead'), _row_value(row, 'Nailhead')),
-        (('Fisheye', 'Fisheye', '鱼眼风险', 'Fisheye'), _row_value(row, 'Fisheye')),
-        (('Fire Loss', 'Fire Loss', '火彩损失', 'Կրակի կորուստ'), _row_value(row, 'Fire Loss')),
-        (('Depth Dev', 'Depth Dev', '深度偏差', 'Խորության շեղում'), _row_value(row, 'Depth Dev')),
-        (('Crown Dev', 'Crown Dev', '冠部偏差', 'Պսակի շեղում'), _row_value(row, 'Crown Dev')),
-        (('Pavilion Dev', 'Pavilion Dev', '亭部偏差', 'Պավիլիոնի շեղում'), _row_value(row, 'Pavilion Dev')),
-        (('Balance Err', 'Balance Err', '平衡误差', 'Հավասարակշռության սխալ'), _row_value(row, 'Balance Err')),
-        (('Girdle Penalty', 'Girdle Penalty', '腰棱扣分', 'Գոտու տուգանք'), _row_value(row, 'Girdle Penalty')),
-        (('Источник размеров', 'Measurement source', '尺寸来源', 'Չափերի աղբյուր'), _row_value(row, 'Chosen Measurement Source', 'Measurement Source')),
-        (('Measurement warning', 'Measurement warning', '尺寸警告', 'Չափերի նախազգուշացում'), _row_value(row, 'Measurement Warning')),
-    ]
-    story.append(_two_col(analysis_rows, risk_rows))
-    story.append(PageBreak())
-
-    _ml_heading(story, 'interpretation', st)
-    story.append(Paragraph(_safe(_row_value(row, 'interpretation_detail_ru')), st['body_ru']))
-    story.append(Paragraph(_safe(_row_value(row, 'interpretation_detail_en')), st['body_en']))
+    story.append(Paragraph('<b>KURGIN-анализ / KURGIN Analysis</b>', st['h2_ru']))
+    story.append(kurgin_elements_table())
 
     warning = _safe(_row_value(row, 'warning_ru'), '')
     if warning:
-        story.append(Paragraph('Предупреждение', st['h2_ru']))
-        story.append(Paragraph('Warning', st['h2_en']))
-        story.append(Paragraph(warning, st['body_ru']))
-        story.append(Paragraph(_safe(_row_value(row, 'warning_en')), st['body_en']))
+        story.append(Spacer(1, 3))
+        story.append(Paragraph('<b>Предупреждение / Warning</b>', st['h2_ru']))
+        story.append(Paragraph(esc(warning), st['body_ru']))
+        story.append(Paragraph(esc(_row_value(row, 'warning_en')), st['body_en']))
 
-    _ml_heading(story, 'disclaimer', st)
-    story.append(Paragraph(DISCLAIMER_TEXT['ru'], st['small_ru']))
-    story.append(Paragraph(DISCLAIMER_TEXT['en'], st['small_en']))
+    story.append(Spacer(1, 4))
+    story.append(Paragraph('<b>Ограничение анализа / Disclaimer</b>', st['h2_ru']))
+    story.append(Paragraph(esc(DISCLAIMER_TEXT['ru']), st['small_ru']))
+    story.append(Paragraph(esc(DISCLAIMER_TEXT['en']), st['small_en']))
 
     doc.build(story, onFirstPage=_footer, onLaterPages=_footer)
     return buffer.getvalue()
