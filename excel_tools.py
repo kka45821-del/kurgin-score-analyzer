@@ -23,6 +23,7 @@ from report_templates.unified_report_schema import (
 from report_templates.pdf_single_stone_report import create_single_stone_pdf
 from translations_lang.label_translator import translate_verdict, translate_tags
 from formula_modules.interpretation.interpretation_engine import add_interpretation_columns
+from formula_modules.tags.analysis_elements import add_kurgin_analysis_elements
 from formula_modules.measurement_spread.spread_engine import add_measurement_spread_columns
 from formula_modules.measurement_spread.diameter_policy import add_diameter_policy_columns
 from validation.input_validator import REQUIRED_COLUMNS, get_missing_columns, validate_row
@@ -81,6 +82,9 @@ RESULTS_COLUMNS = [
     "TablePercent", "DepthPercent", "CrownAngle", "PavilionAngle", "CrownPercent", "PavilionPercent", "GirdlePercent",
     "Kurgin Score", "Verdict Local", "score_band_label_ru",
     "tags_all", "tag1", "tag2", "tag3", "tag4", "tag5", "tag6",
+    "Fire Profile", "Brilliance Profile", "Contrast Profile", "Balance Profile",
+    "Card Tags", "Active KURGIN Tags",
+    "Perfect Build Status", "Hidden Weight Status", "Nailhead Risk Status", "Fisheye Risk Status", "Low Fire Status",
     "interpretation_short_ru", "recommendation_ru", "warning_ru",
     "Data Completeness %", "Report Quality Status",
     "platform_import_status", "recommended_pdf_priority",
@@ -119,6 +123,16 @@ DETAILS_COLUMNS = [
     "Triple Score", "Structure Modifier", "Visual Check", "Critical Risk",
     "Nailhead", "Fisheye", "Fire Loss", "Depth Dev", "Crown Dev", "Pavilion Dev", "Balance Err", "Girdle Penalty",
     "Tags", "Tags Local", "tags_all", "tag1", "tag2", "tag3", "tag4", "tag5", "tag6",
+    "Fire Profile", "Fire Explanation RU", "Fire Explanation EN",
+    "Brilliance Profile", "Brilliance Explanation RU", "Brilliance Explanation EN",
+    "Contrast Profile", "Contrast Explanation RU", "Contrast Explanation EN",
+    "Balance Profile", "Balance Explanation RU", "Balance Explanation EN",
+    "Perfect Build Status", "Perfect Build Explanation RU", "Perfect Build Explanation EN",
+    "Hidden Weight Status", "Hidden Weight Explanation RU", "Hidden Weight Explanation EN",
+    "Nailhead Risk Status", "Nailhead Risk Explanation RU", "Nailhead Risk Explanation EN",
+    "Fisheye Risk Status", "Fisheye Risk Explanation RU", "Fisheye Risk Explanation EN",
+    "Low Fire Status", "Low Fire Explanation RU", "Low Fire Explanation EN",
+    "Active KURGIN Tags", "Card Tags",
     "tag_light", "tag_structure", "tag_spread", "tag_risk", "tag_certificate", "tag_commercial", "certificate_flags",
     "interpretation_short_ru", "interpretation_detail_ru", "recommendation_ru", "warning_ru", "disclaimer_ru",
     "KURGIN Import ID", "KURGIN Report ID", "PDF Report Status", "PDF Report File", "PDF Report URL", "PDF Generation Mode",
@@ -623,6 +637,7 @@ def process_dataframe(df, language="RU"):
     if ID_COLUMN not in df.columns:
         df[ID_COLUMN] = df.index + 1
     df = localize_dataframe(df, language)
+    df = add_kurgin_analysis_elements(df)
     df = add_pdf_report_columns(df)
     df = add_measurement_spread_columns(df)
     df = add_diameter_policy_columns(df)
@@ -1199,6 +1214,7 @@ def process_single_stone(params):
     output = pd.concat([row, result])
     df = pd.DataFrame([output])
     df = localize_dataframe(df, params.get("language", "RU"))
+    df = add_kurgin_analysis_elements(df)
     df = add_pdf_report_columns(df)
     df = add_measurement_spread_columns(df)
     df = add_diameter_policy_columns(df)
