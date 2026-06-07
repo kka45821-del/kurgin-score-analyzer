@@ -117,6 +117,40 @@ TAG_COLUMNS = [
     "certificate_flags",
 ]
 
+ANALYSIS_ELEMENT_COLUMNS = [
+    "KURGIN Analysis Elements Version",
+    "Fire Profile",
+    "Fire Explanation RU",
+    "Fire Explanation EN",
+    "Brilliance Profile",
+    "Brilliance Explanation RU",
+    "Brilliance Explanation EN",
+    "Contrast Profile",
+    "Contrast Explanation RU",
+    "Contrast Explanation EN",
+    "Balance Profile",
+    "Balance Explanation RU",
+    "Balance Explanation EN",
+    "Perfect Build Status",
+    "Perfect Build Explanation RU",
+    "Perfect Build Explanation EN",
+    "Hidden Weight Status",
+    "Hidden Weight Explanation RU",
+    "Hidden Weight Explanation EN",
+    "Nailhead Risk Status",
+    "Nailhead Risk Explanation RU",
+    "Nailhead Risk Explanation EN",
+    "Fisheye Risk Status",
+    "Fisheye Risk Explanation RU",
+    "Fisheye Risk Explanation EN",
+    "Low Fire Status",
+    "Low Fire Explanation RU",
+    "Low Fire Explanation EN",
+    "Active KURGIN Tags",
+    "Card Tags",
+]
+
+
 TEXT_COLUMNS = [
     "executive_summary_ru",
     "interpretation_short_ru",
@@ -162,6 +196,7 @@ UNIFIED_REPORT_COLUMNS = (
     + SCORE_COLUMNS
     + RISK_COLUMNS
     + TAG_COLUMNS
+    + ANALYSIS_ELEMENT_COLUMNS
     + TEXT_COLUMNS
     + REPORT_META_COLUMNS
     + FUTURE_MODULE_COLUMNS
@@ -174,6 +209,12 @@ KURGIN_CARD_COLUMNS = [
     "Kurgin Score",
     "Verdict Local",
     "score_band_label_ru",
+    "Fire Profile",
+    "Brilliance Profile",
+    "Contrast Profile",
+    "Balance Profile",
+    "Card Tags",
+    "Active KURGIN Tags",
     "tags_all",
     "interpretation_short_ru",
     "recommendation_ru",
@@ -190,6 +231,7 @@ SECTION_ORDER = [
     ("KURGIN Score", SCORE_COLUMNS),
     ("Risks", RISK_COLUMNS),
     ("Tags", TAG_COLUMNS),
+    ("KURGIN Analysis Elements", ANALYSIS_ELEMENT_COLUMNS),
     ("Interpretation", TEXT_COLUMNS),
     ("Report Metadata", REPORT_META_COLUMNS),
     ("Future Modules", FUTURE_MODULE_COLUMNS),
