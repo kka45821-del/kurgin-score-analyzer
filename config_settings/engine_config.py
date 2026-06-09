@@ -92,10 +92,11 @@ FINAL_CONFIG = {
     "critical_nailhead_threshold": 0.35,
     "critical_fisheye_threshold": 0.30,
 
-    "elite_threshold": 99,
-    "top_threshold": 95,
-    "high_threshold": 90,
-    "standard_threshold": 80,
+    "elite_threshold": 95,
+    "premium_threshold": 90,
+    "high_threshold": 80,
+    "standard_threshold": 70,
+    "fair_threshold": 60,
 
     "visual_check_threshold": 90,
 }

@@ -48,20 +48,20 @@ def get_final_diamond_analysis(
     )
 
     if final_score >= FINAL_CONFIG["elite_threshold"]:
-        verdict = "ELITE: Premium Build"
-    elif final_score >= FINAL_CONFIG["top_threshold"]:
-        verdict = "TOP: Excellent Selection"
+        verdict = "ELITE: Elite"
+    elif final_score >= FINAL_CONFIG["premium_threshold"]:
+        verdict = "PREMIUM: Premium"
     elif final_score >= FINAL_CONFIG["high_threshold"]:
-        verdict = "HIGH: Great Quality"
+        verdict = "HIGH: High Quality"
     elif final_score >= FINAL_CONFIG["standard_threshold"]:
-        verdict = "STD: Commercial Grade"
+        verdict = "STANDARD: Standard"
+    elif final_score >= FINAL_CONFIG["fair_threshold"]:
+        verdict = "FAIR: Fair Quality"
     else:
-        verdict = "REJECT: Poor Performance"
+        verdict = "POOR: Low Quality"
 
-    if critical_risk and final_score >= FINAL_CONFIG["standard_threshold"]:
+    if critical_risk:
         verdict = "CAUTION: Critical Optical Risk"
-    elif critical_risk:
-        verdict = "REJECT: Poor Performance"
     elif struct["visual_check"] and final_score >= FINAL_CONFIG["visual_check_threshold"]:
         verdict = "NOTICE: Visual Check Recommended"
 

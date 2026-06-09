@@ -1,13 +1,22 @@
 VERDICT_TRANSLATIONS = {
-    "ELITE: Premium Build": {"RU": "ЭЛИТА: Премиальная сборка", "EN": "ELITE: Premium Build"},
-    "TOP: Excellent Selection": {"RU": "ТОП: Отличный выбор", "EN": "TOP: Excellent Selection"},
-    "HIGH: Great Quality": {"RU": "ВЫСОКИЙ: Хорошее качество", "EN": "HIGH: Great Quality"},
-    "STD: Commercial Grade": {"RU": "СТАНДАРТ: Коммерческое качество", "EN": "STD: Commercial Grade"},
-    "REJECT: Poor Performance": {"RU": "ОТКЛОНЕНО: Слабая оптика", "EN": "REJECT: Poor Performance"},
-    "NOTICE: Visual Check Recommended": {"RU": "ВНИМАНИЕ: Нужна визуальная проверка", "EN": "NOTICE: Visual Check Recommended"},
-    "CAUTION: Critical Optical Risk": {"RU": "РИСК: Критическая оптическая проблема", "EN": "CAUTION: Critical Optical Risk"},
-    "IN DEVELOPMENT": {"RU": "В РАЗРАБОТКЕ", "EN": "IN DEVELOPMENT"},
-    "ERROR": {"RU": "ОШИБКА", "EN": "ERROR"},
+    "ELITE: Elite": {"RU": "Элитный", "EN": "Elite"},
+    "PREMIUM: Premium": {"RU": "Премиальный", "EN": "Premium"},
+    "HIGH: High Quality": {"RU": "Высокое качество", "EN": "High Quality"},
+    "STANDARD: Standard": {"RU": "Стандартный", "EN": "Standard"},
+    "FAIR: Fair Quality": {"RU": "Среднее качество", "EN": "Fair Quality"},
+    "POOR: Low Quality": {"RU": "Низкое качество", "EN": "Low Quality"},
+
+    # Backward-compatible old engine labels. They must not expose "ОТКЛОНЕНО" publicly.
+    "ELITE: Premium Build": {"RU": "Элитный", "EN": "Elite"},
+    "TOP: Excellent Selection": {"RU": "Премиальный", "EN": "Premium"},
+    "HIGH: Great Quality": {"RU": "Высокое качество", "EN": "High Quality"},
+    "STD: Commercial Grade": {"RU": "Стандартный", "EN": "Standard"},
+    "REJECT: Poor Performance": {"RU": "Низкое качество", "EN": "Low Quality"},
+
+    "NOTICE: Visual Check Recommended": {"RU": "Требует визуальной проверки", "EN": "Visual Check Recommended"},
+    "CAUTION: Critical Optical Risk": {"RU": "Критический оптический риск", "EN": "Critical Optical Risk"},
+    "IN DEVELOPMENT": {"RU": "В разработке", "EN": "In development"},
+    "ERROR": {"RU": "Ошибка", "EN": "Error"},
 }
 
 TAG_TRANSLATIONS = {
@@ -30,5 +39,5 @@ def translate_tag(tag, language):
 def translate_tags(tags_text, language):
     if not tags_text:
         return ""
-    tags = [tag.strip() for tag in str(tags_text).split(",") if tag.strip()]
+    tags = [tag.strip() for tag in str(tags_text).replace(";", ",").split(",") if tag.strip()]
     return ", ".join(translate_tag(tag, language) for tag in tags)
