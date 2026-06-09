@@ -486,17 +486,36 @@ def create_single_stone_pdf(row, language='MULTI'):
     story.append(Paragraph(ML['title']['en'], st['title_en']))
 
     score = _score(_row_value(row, 'Kurgin Score'))
-    verdict = value_from('Verdict Local', 'Verdict')
-    score_class = value_from('score_band_label_ru', 'score_band_label_en')
-    active_tags = value_from('Active KURGIN Tags', 'tags_all', 'Tags Local', 'Tags', default='')
+
+    score_class_ru = raw_value_from('score_band_label_ru', default='')
+    score_class_en = raw_value_from('score_band_label_en', default='')
+    if score_class_ru and score_class_en and score_class_ru != score_class_en:
+        score_class = f"{score_class_ru} / {score_class_en}"
+    else:
+        score_class = score_class_ru or score_class_en or value_from('Verdict Local', 'Verdict')
+
+    active_tags_raw = raw_value_from('Active KURGIN Tags', 'tags_all', 'Tags Local', 'Tags', default='')
+    tag_public_labels = {
+        'Perfect Build': 'Идеальная сборка / Perfect Build',
+        'Hidden Weight': 'Скрытый вес / Hidden Weight',
+        'Nailhead Risk': 'Риск тёмного центра / Nailhead Risk',
+        'Fisheye Risk': 'Риск рыбьего глаза / Fisheye Risk',
+        'Low Fire': 'Слабая игра света / Low Fire',
+    }
+
+    signal_parts = []
+    for item in str(active_tags_raw or '').replace(';', ',').split(','):
+        item = item.strip()
+        if item:
+            signal_parts.append(tag_public_labels.get(item, item))
+    main_signal = '; '.join(signal_parts)
 
     story.append(Spacer(1, 1.5))
     story.append(Paragraph(score, st['score']))
     story.append(Paragraph('KURGIN Score / 100', st['muted_center']))
-    story.append(Paragraph(f'<b>{verdict}</b>', st['center']))
-    story.append(Paragraph(f'<b>Класс / Class:</b> {score_class}', st['center']))
-    if active_tags:
-        story.append(Paragraph(f'<b>Активные теги / Active tags:</b> {active_tags}', st['center']))
+    story.append(Paragraph(f'<b>Класс / Class:</b> {esc(score_class)}', st['center']))
+    if main_signal:
+        story.append(Paragraph(f'<b>Основной сигнал / Main signal:</b> {esc(main_signal)}', st['center']))
 
     story.append(Spacer(1, 3))
     story.append(Paragraph('<b>Краткий вывод / Short conclusion</b>', st['h2_ru']))
