@@ -17,6 +17,7 @@ These paths are treated as active and should not be removed during cleanup witho
 |---|---:|---|
 | `app.py` | 1 | Main Streamlit entrypoint. |
 | `excel_tools.py` | 1 | Single-stone and Excel export processing. |
+| `excel_output` | 5 | Active Excel export/output module area. Do not treat as generated local output. |
 | `core_formula` | 4 | Core scoring engine. |
 | `formula_modules` | 23 | Formula modules, interpretation, tags, measurement spread logic. |
 | `kurgin_core` | 3 | KURGIN core package/module area. |
@@ -61,7 +62,6 @@ These paths are candidates for later cleanup, archiving, or consolidation. They 
 | `baseline_reports` | 1 | Check whether these are generated outputs or required fixtures. |
 | `candidate_reports` | 1 | Check whether these are generated outputs or required fixtures. |
 | `candidate_review_v1_11_6` | 1 | Review usage before deletion or archiving. |
-| `excel_output` | 5 | Check whether these are generated outputs or required fixtures. |
 | `formula_candidates` | 7 | Likely historical formula work; preserve until formula lineage is documented. |
 | `formula_comparison` | 4 | Likely historical formula work; preserve until formula lineage is documented. |
 | `formula_versions` | 11 | Likely historical formula work; preserve until formula lineage is documented. |
