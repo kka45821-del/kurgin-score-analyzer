@@ -23,6 +23,7 @@ from report_templates.unified_report_schema import (
 from report_templates.pdf_single_stone_report import create_single_stone_pdf
 from translations_lang.label_translator import translate_verdict, translate_tags
 from formula_modules.interpretation.interpretation_engine import add_interpretation_columns
+from formula_modules.interpretation.score_band_interpreter import get_score_band_label
 from formula_modules.tags.analysis_elements import add_kurgin_analysis_elements
 from formula_modules.measurement_spread.spread_engine import add_measurement_spread_columns
 from formula_modules.measurement_spread.diameter_policy import add_diameter_policy_columns
@@ -269,9 +270,37 @@ Shape: {shape}
 
 def localize_dataframe(df, language):
     df = df.copy()
+
+    if "Verdict" in df.columns and "Engine Verdict Raw" not in df.columns:
+        df["Engine Verdict Raw"] = df["Verdict"]
+
     df["Verdict Local"] = df["Verdict"].apply(lambda x: translate_verdict(x, language))
     df["Tags Local"] = df["Tags"].apply(lambda x: translate_tags(x, language))
+
+    # Create public score-band labels before report texts are built.
+    # This keeps Verdict Local, executive summaries, Excel, PDF and Streamlit aligned.
+    if "Kurgin Score" in df.columns:
+        df["score_band_label_ru"] = df["Kurgin Score"].apply(lambda value: get_score_band_label(value, language="RU"))
+        df["score_band_label_en"] = df["Kurgin Score"].apply(lambda value: get_score_band_label(value, language="EN"))
+
+    if "Calculation Status" in df.columns:
+        ok_mask = df["Calculation Status"].astype(str).eq("OK")
+    else:
+        ok_mask = pd.Series(False, index=df.index)
+
+    public_col = "score_band_label_ru" if language == "RU" else "score_band_label_en"
+    if public_col in df.columns:
+        public_values = df.loc[ok_mask, public_col].astype(str).str.strip()
+        valid = public_values.ne("") & ~public_values.str.lower().isin({"nan", "none", "—", "-"})
+        df.loc[public_values.index[valid], "Verdict Local"] = public_values[valid]
+
+    if "score_band_label_en" in df.columns and "Verdict" in df.columns:
+        public_en = df.loc[ok_mask, "score_band_label_en"].astype(str).str.strip()
+        valid_en = public_en.ne("") & ~public_en.str.lower().isin({"nan", "none", "—", "-"})
+        df.loc[public_en.index[valid_en], "Verdict"] = public_en[valid_en]
+
     df = add_interpretation_columns(df, language=language)
+
     # Ensure tag columns always exist, even if no tags were generated.
     for col in TAG_COLUMNS:
         if col not in df.columns:
@@ -654,9 +683,16 @@ def make_analytics(df):
     verdict_col = "Verdict Local" if "Verdict Local" in df.columns else "Verdict"
     verdict_counts = df[verdict_col].value_counts().reset_index()
     verdict_counts.columns = ["Verdict", "Count"]
-    bins = [0, 50, 70, 80, 90, 95, 98.5, 100]
-    labels = ["Rejected", "Poor", "Fair", "Standard", "High", "Premium", "Elite"]
-    ok_df["Score Range"] = pd.cut(ok_df["Kurgin Score"], bins=bins, labels=labels, include_lowest=True)
+    score_range_order = ["Low Quality", "Fair Quality", "Standard", "High Quality", "Premium", "Elite"]
+    if "score_band_label_en" in ok_df.columns:
+        score_range_values = ok_df["score_band_label_en"].astype(str).str.strip()
+        score_range_values = score_range_values.where(
+            score_range_values.ne("") & ~score_range_values.str.lower().isin({"nan", "none", "—", "-"}),
+            ok_df["Kurgin Score"].apply(lambda value: get_score_band_label(value, language="EN")),
+        )
+    else:
+        score_range_values = ok_df["Kurgin Score"].apply(lambda value: get_score_band_label(value, language="EN"))
+    ok_df["Score Range"] = pd.Categorical(score_range_values, categories=score_range_order, ordered=True)
     score_ranges = ok_df["Score Range"].value_counts().sort_index().reset_index()
     score_ranges.columns = ["Score Range", "Count"]
     top_10 = ok_df.sort_values("Kurgin Score", ascending=False).head(10)
