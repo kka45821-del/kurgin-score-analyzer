@@ -1,3 +1,149 @@
+KURGIN Score Analyzer — repository overview
+================================================
+
+Purpose
+-------
+This repository contains the current KURGIN diamond scoring workbench.
+
+It is responsible for:
+- single-stone certificate input and calculation;
+- batch Excel analysis;
+- KURGIN Score calculation;
+- public score-band labels;
+- KURGIN analysis elements and tags;
+- Excel output generation;
+- PDF report generation;
+- Streamlit-based verification UI.
+
+Current production path
+-----------------------
+The active path is:
+
+input data
+-> validation and normalization
+-> core formula calculation
+-> interpretation and tags
+-> Excel output
+-> PDF report
+-> Streamlit verification UI
+
+The repository is still an MVP/workbench, but the current active flow is expected to remain stable while cleanup is performed in separate, small pull requests.
+
+Main outputs
+------------
+The current user-facing outputs are:
+
+1. Single-stone PDF report
+   - certificate data;
+   - KURGIN Score;
+   - public score band;
+   - main signal;
+   - 9 KURGIN analysis elements.
+
+2. Excel output
+   - Results;
+   - Details;
+   - Issues;
+   - System/support sheets where applicable.
+
+3. Streamlit UI
+   - manual single-stone calculation;
+   - upload / batch analysis;
+   - preview and download workflows.
+
+Repository layout
+-----------------
+Active core:
+
+- app.py
+  Main Streamlit entrypoint.
+
+- excel_tools.py
+  Single-stone processing, batch processing and Excel export coordination.
+
+- core_formula/
+  Core scoring engine.
+
+- formula_modules/
+  Formula modules, interpretation, tags, measurement spread logic and report text logic.
+
+- config_settings/
+  Runtime thresholds and engine settings.
+
+- translations_lang/
+  Public labels and tag translations.
+
+- report_templates/
+  PDF report templates and report schema definitions.
+
+- excel_output/
+  Active Excel export/output module area. Do not treat as generated local output.
+
+- validation/
+  Input validation and processing validation.
+
+- tests/
+  Automated and regression tests.
+
+Streamlit / UI layer:
+
+- ui_pages/
+  Streamlit page/module mirror layer. Sync-sensitive.
+
+- .streamlit/
+  Streamlit configuration.
+
+- assets/
+  Branding and static assets.
+
+Integration / deployment layer:
+
+- api/
+- deployment/
+- platform_config/
+- platform_integration/
+- formula_client/
+- access_control/
+
+These may be active for staging, API contracts, platform integration or deployment. Do not delete without checking the current deployment path.
+
+Cleanup policy
+--------------
+Repository cleanup must be incremental.
+
+Do not delete folders in broad cleanup commits.
+
+Use separate pull requests for:
+- documentation updates;
+- README updates;
+- generated-output review;
+- historical formula review;
+- validation/test cleanup;
+- UI mirror refactoring;
+- dependency cleanup.
+
+See also:
+- docs/REPOSITORY_CLEANUP_AUDIT.md
+
+Recent important cleanup/stabilization decisions
+------------------------------------------------
+- Single-stone PDF report has been simplified and made client-readable.
+- Public score bands are standardized:
+  - poor: <60
+  - fair: 60-69.99
+  - standard: 70-79.99
+  - high: 80-89.99
+  - premium: 90-94.99
+  - elite: 95+
+- Public reports should not use internal rejection wording such as REJECT or ОТКЛОНЕНО.
+- excel_output is an active Excel export/output module area, not cleanup trash.
+- ui_pages mirrors are sync-sensitive and should not be removed until Streamlit routing/imports are refactored.
+
+Legacy notes / historical changelog
+===================================
+
+The section below preserves earlier repository notes and version history.
+
 Kurgin Score Analyzer v1.5 — Mobile-first PWA-ready interface
 
 Main changes:
