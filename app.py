@@ -311,7 +311,7 @@ def gated_level_message(t, role, level):
     return True
 
 
-def render_single_result(t, role):
+def render_single_result(t, role, language="RU"):
     stone = st.session_state.single_result
     if stone is None:
         st.info(t["upload_to_continue"])
@@ -322,7 +322,8 @@ def render_single_result(t, role):
     report_level = LEVEL_TO_REPORT[active]
     st.markdown("<div class='kg-card'>", unsafe_allow_html=True)
     st.markdown(f"<div class='kg-score'>{score_label(stone['Kurgin Score'])}</div>", unsafe_allow_html=True)
-    verdict = stone.get("Verdict Local", stone.get("Verdict", "—"))
+    verdict_col = "score_band_label_ru" if language == "RU" else "score_band_label_en"
+    verdict = stone.get(verdict_col) or stone.get("Verdict Local", stone.get("Verdict", "—"))
     st.markdown(f"<div class='kg-verdict'>{verdict}</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -342,7 +343,7 @@ def render_single_result(t, role):
     st.dataframe(filter_report_dataframe(pd.DataFrame([stone]), report_level), use_container_width=True, hide_index=True)
 
     raw_tags = [tag.strip() for tag in str(stone.get("Tags", "")).split(",") if tag.strip()]
-    tag_interpretations = get_tag_interpretations(raw_tags, language="RU" if "ОТКЛОНЕНО" in str(stone.get("Verdict Local", "")) or "ТОП" in str(stone.get("Verdict Local", "")) else "EN")
+    tag_interpretations = get_tag_interpretations(raw_tags, language=language)
     if tag_interpretations and report_level in ["Short Report", "Detailed Report", "Full Report", "Professional Report"]:
         with st.expander(t["interpretations"], expanded=True):
             st.dataframe(pd.DataFrame(tag_interpretations), use_container_width=True, hide_index=True)
@@ -466,7 +467,7 @@ def single_mode(t, language, role):
             }
             st.session_state.single_result = process_single_stone(params)
 
-    render_single_result(t, role)
+    render_single_result(t, role, language=language)
 
 
 def metric_row(t, analytics):
