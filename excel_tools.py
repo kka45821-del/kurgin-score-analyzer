@@ -268,6 +268,16 @@ Shape: {shape}
         return _empty_result("ERROR", str(e), str(e))
 
 
+def _sanitize_public_breakdown_verdict(breakdown, public_verdict):
+    text = str(breakdown or "")
+    public = str(public_verdict or "").strip()
+
+    if not text or not public or text.lower() in {"nan", "none", "—", "-"}:
+        return breakdown
+
+    return re.sub(r"(?m)^Verdict:\s*.*$", f"Verdict: {public}", text)
+
+
 def localize_dataframe(df, language):
     df = df.copy()
 
@@ -298,6 +308,12 @@ def localize_dataframe(df, language):
         public_en = df.loc[ok_mask, "score_band_label_en"].astype(str).str.strip()
         valid_en = public_en.ne("") & ~public_en.str.lower().isin({"nan", "none", "—", "-"})
         df.loc[public_en.index[valid_en], "Verdict"] = public_en[valid_en]
+
+    if "Breakdown" in df.columns and "Verdict" in df.columns:
+        df.loc[ok_mask, "Breakdown"] = [
+            _sanitize_public_breakdown_verdict(breakdown, verdict)
+            for breakdown, verdict in zip(df.loc[ok_mask, "Breakdown"], df.loc[ok_mask, "Verdict"])
+        ]
 
     df = add_interpretation_columns(df, language=language)
 
